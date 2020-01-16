@@ -3,8 +3,17 @@ use std::collections::VecDeque;
 use rand::prelude::*;
 
 use super::concept::{AdversaryDescription, SpiritDescription, Power, Fear, ContentPack, InvaderActionKind};
-use super::board::{LandKind, MapDescription};
+use super::board::{LandKind, MapDescription, MapState};
 use super::step::{GameStep, TurnStep, InvaderStep, InvaderCard, generate_invader_deck};
+
+/*
+    In general decks of cards organized as Vecs will follow physical card rules:
+
+    * Push a card means put it on top of the stack.
+    * Pop means take off the top of the stack.
+
+    This does however mean that the first card when iterating is the _bottom_ card which might be the last one poped.
+*/
 
 pub trait Deck<T> {
     fn shuffle_draw(&mut self, rng: &mut dyn RngCore);
@@ -118,7 +127,7 @@ pub struct GameDescription {
     pub content: Vec<Box<dyn ContentPack>>,
     pub adversary: Box<dyn AdversaryDescription>,
     pub spirits: Vec<Box<dyn SpiritDescription>>,
-    pub map: Box<MapDescription>,
+    pub map: Rc<MapDescription>,
 }
 
 impl GameDescription {
@@ -132,18 +141,24 @@ impl GameDescription {
             content,
             adversary,
             spirits,
-            map
+            map: Rc::from(map)
         }
     }
 }
 
 pub struct GameState {
-    desc: Rc<GameDescription>,
+    pub desc: Rc<GameDescription>,
 
     rng: Box<dyn RngCore>,
 
-    minor_powers: SimpleDeck<Box<dyn Power>>,
-    major_powers: SimpleDeck<Box<dyn Power>>,
+    pub step: GameStep,
+    pub game_over_reason: Option<String>,
+
+    pub invader: InvaderDeck,
+
+    pub map: MapState,
+
+    pub blight_remaining: u8,
 
     fears: SimpleDeck<Box<dyn Fear>>,
     fears_pending: Vec<Box<dyn Fear>>,
@@ -151,20 +166,25 @@ pub struct GameState {
     fear_generated: u8,
     fear_counts: (u8, u8, u8),
 
-    pub invader: InvaderDeck,
+    minor_powers: SimpleDeck<Box<dyn Power>>,
+    major_powers: SimpleDeck<Box<dyn Power>>,
 
-    pub step: GameStep,
-    pub game_over_reason: Option<String>,
 }
 
 impl GameState {
     pub fn new(desc: Rc<GameDescription>, rng: Box<dyn RngCore>) -> GameState {
         GameState {
-            desc,
+            desc: desc.clone(),
             rng,
 
-            minor_powers: SimpleDeck::new(),
-            major_powers: SimpleDeck::new(),
+            step: GameStep::Init,
+            game_over_reason: None,
+
+            invader: InvaderDeck::new(),
+
+            map: MapState::new(desc.map.clone()),
+
+            blight_remaining: 5,
 
             fears: SimpleDeck::new(),
             fears_pending: Vec::new(),
@@ -172,15 +192,13 @@ impl GameState {
             fear_generated: 0,
             fear_counts: (3, 3, 3),
 
-            invader: InvaderDeck::new(),
-
-            step: GameStep::Init,
-            game_over_reason: None,
+            minor_powers: SimpleDeck::new(),
+            major_powers: SimpleDeck::new(),
         }
     }
 
     pub fn is_over(&self) -> bool {
-        match &self.step {
+        match self.step {
             GameStep::Victory | GameStep::Defeat => true,
             _ => false,
         }
@@ -198,6 +216,56 @@ impl GameState {
         self.step = GameStep::Victory;
 
         Err(())
+    }
+
+    pub fn do_add_blight_effect(&mut self, land_index: u8) -> Result<(), ()> {
+        println!("   |    `===> blighting land {}.", land_index);
+
+        let mut land = self.map.lands.get_mut(land_index as usize).unwrap();
+
+        // 1. Remove blight from card
+        if self.blight_remaining == 0 {
+            self.do_defeat("No blight is left.")?;
+        }
+
+        self.blight_remaining -= 1;
+
+        // 2. Add blight to the land
+        //land.add_blight();
+
+        // 3. Kill presence
+        // TODO
+
+        // 4. Check for cascade
+        // This is a decision point... ugh
+        
+        Ok(())
+    }
+
+    pub fn do_ravage_effect(&mut self, land_index: u8) -> Result<(), ()> {
+        println!("   | `--. > Ravaging in land {}.", land_index);
+
+        let mut land = self.map.lands.get_mut(land_index as usize).unwrap();
+        let invader_damage: u16 = land.pieces.iter().map(|p| p.invader_damage()).sum();
+
+        let blight_threshold = 2;
+
+        // TODO intercept and modify this damage:
+        // * Adversary manipulations
+        // * Spirit manipulations
+        // * Powers and other effects
+        //   * defense
+        //   * modify invader damage
+        //   * modify dahan health
+        //   * modify blight threshold
+        // * ...
+
+        // Damage is done in two steps, one to the land and one to the dahan
+        if invader_damage >= blight_threshold {
+            self.do_add_blight_effect(land_index)?;
+        }
+
+        Ok(())
     }
 
     pub fn step_until_decision(&mut self) -> Result<(), ()> {
@@ -295,15 +363,25 @@ impl GameState {
                                     }
                                 }
 
-                                match &inv_kind {
-                                    InvaderActionKind::Explore => {
+                                let cards = self.invader.pending.get(*inv_action as usize).unwrap().clone();
 
-                                    }
-                                    InvaderActionKind::Ravage => {
-                                        
-                                    }
-                                    InvaderActionKind::Build => {
-                                        
+                                // BaC pg. 14, we go bottom to top
+                                for card in cards {
+                                    let lands = desc.map.lands_iter().filter(|l| card.can_target(l));
+
+                                    match &inv_kind {
+                                        InvaderActionKind::Explore => {
+                                            println!("   |-. > Invader Action Card: {}", card);
+                                        }
+                                        InvaderActionKind::Build => {
+                                            println!("   |-. > Invader Action Card: {}", card);
+                                        }
+                                        InvaderActionKind::Ravage => {
+                                            println!("   |-. > Invader Action Card: {}", card);
+                                            for land in lands {
+                                                self.do_ravage_effect(land.map_index)?;
+                                            }
+                                        }
                                     }
                                 }
 

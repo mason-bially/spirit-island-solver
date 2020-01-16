@@ -1,9 +1,14 @@
-use std::rc::Rc;
-use std::fmt;
+use std::{
+    rc::{Rc},
+    fmt,
+};
 
-use super::concept::{ContentPack};
+use super::{
+    piece::{Piece},
+    concept::{ContentPack, search_for_board},
+};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum LandKind {
     Ocean,
     Jungle,
@@ -25,34 +30,93 @@ impl fmt::Display for LandKind {
 }
 
 pub struct LandDescription {
-    adjacent: Vec<Rc<LandDescription>>,
-    kind: LandKind,
-    is_coastal: bool,
-    edge_range: Option<(u8, u8)>, // ranges from 0 to 20... need to figure out the tiling, is it 7 gaps a side?
-    map_index: u8,
-    board_index: u8,
+    pub adjacent: Vec<u8>,
+    pub kind: LandKind,
+    pub is_coastal: bool,
+    pub edge_range: Option<(u8, u8)>, // ranges from 0 to 20... need to figure out the tiling, is it 7 gaps a side?
+    pub board_index: u8,
+    pub starting_pieces: Vec<Piece>,
+    pub map_index: u8,
+    pub parent_board_index: u8,
 }
 
 pub struct BoardDescription {
-    name: String,
-    lands: Vec<Rc<LandDescription>>,
+    pub name: &'static str,
+    pub lands: Vec<Rc<LandDescription>>,
 }
 
 pub struct MapDescription {
-    boards: Vec<BoardDescription>,
+    pub boards: Vec<BoardDescription>,
+    pub lands: Vec<Rc<LandDescription>>,
+    pub land_count: u8,
 }
 
 pub struct LandState {
-    desc: LandDescription,
+    pub desc: Rc<LandDescription>,
+    pub pieces: Vec<Piece>,
 }
 
 pub struct MapState {
-    desc: Rc<MapDescription>,
-    lands: Vec<LandState>,
+    pub desc: Rc<MapDescription>,
+    pub lands: Vec<LandState>,
 }
 
 pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> MapDescription {
+    let mut boards = Vec::new();
+    let mut lands = Vec::new();
+    let mut land_count = 0;
+    let mut board_count = 0;
+
+    for board_name in board_names.into_iter() {
+        let mut board = search_for_board(content, board_name).unwrap();
+        for land in board.lands.iter_mut() {
+            let land_mut = Rc::get_mut(land).unwrap();
+            land_mut.map_index += land_count;
+            land_mut.parent_board_index = board_count;
+            
+            lands.push(land.clone());
+        }
+
+        land_count += board.lands.len() as u8;
+        boards.push(board);
+
+        board_count += 1;
+    }
+
     MapDescription {
-        boards: Vec::new()
+        boards,
+        lands,
+        land_count
+    }
+}
+
+
+impl MapDescription {
+    pub fn get_land(&self, index: u8) -> Rc<LandDescription> {
+        self.lands.get(index as usize).unwrap().clone()
+    }
+
+    pub fn lands_iter(&self) -> std::slice::Iter<Rc<LandDescription>> {
+        self.lands.iter()
+    }
+}
+
+impl MapState {
+    pub fn new(desc: Rc<MapDescription>) -> MapState {
+        let mut lands = Vec::new();
+
+        for board in desc.boards.iter() {
+            for land in board.lands.iter() {
+                lands.push(LandState {
+                    desc: land.clone(),
+                    pieces: land.starting_pieces.clone(),
+                });
+            }
+        }
+
+        MapState {
+            desc,
+            lands,
+        }
     }
 }

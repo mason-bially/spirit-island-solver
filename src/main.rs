@@ -24,18 +24,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         .about("A spirit island solver and simulator.")
         .arg(Arg::with_name("spirit")
             .short("s")
-            .short("spirit")
+            .long("spirit")
             .help("Selects a spirit to solve the game with.")
             .takes_value(true)
             .multiple(true))
+        .arg(Arg::with_name("seed")
+            .long("seed")
+            .help("Sets the seet of the random system for reproducible results..")
+            .takes_value(true))
         .get_matches();
 
-
-
-    let input: &[_] = &[1, 2, 3, 4];
     let mut seed: [u8; 32] = [0; 32];
     let mut hasher = Sha1::new();
-    hasher.input(input);
+    hasher.input_str(matches.value_of("seed").unwrap_or("default"));
     hasher.result(&mut seed);
     let rng = Box::new(ChaChaRng::from_seed(seed));
 
@@ -60,10 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let description = Rc::new(base::GameDescription::new(content, adversary, spirits, map));
     let mut state = base::GameState::new(description, rng);
 
-    while !state.is_over()
-    {
-        state.step();
-    }
+    state.step_until_decision();
 
     match state.step {
         base::GameStep::Victory => { println!("Vectory!    {}", state.game_over_reason.unwrap()); }

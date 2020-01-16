@@ -1,8 +1,12 @@
-use std::fmt;
+use std::{
+    rc::Rc,
+    fmt,
+};
 
-use super::concept::{InvaderActionKind};
-use super::board::{LandKind};
-
+use super::{
+    concept::{InvaderActionKind},
+    board::{LandKind, LandDescription},
+};
 
 impl fmt::Display for InvaderActionKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -95,6 +99,17 @@ impl fmt::Display for InvaderCard {
             InvaderCard::Phase2(a) => write!(f, "Phase II {} +", a),
             InvaderCard::Phase3(a, b) => write!(f, "Phase III {}/{}", a, b),
        }
+    }
+}
+
+impl InvaderCard {
+    pub fn can_target(&self, land: &Rc<LandDescription>) -> bool {
+        match *self {
+            InvaderCard::Phase1(kind) => kind == land.kind,
+            InvaderCard::Phase2(LandKind::Ocean) => land.kind != LandKind::Ocean && land.is_coastal,
+            InvaderCard::Phase2(kind) => kind == land.kind,
+            InvaderCard::Phase3(kind_a, kind_b) => kind_a == land.kind || kind_b == land.kind,
+        }
     }
 }
 

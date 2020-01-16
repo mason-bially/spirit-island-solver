@@ -1,3 +1,4 @@
+use super::board::{BoardDescription};
 use super::step::{GameStep};
 use super::game::{GameState};
 
@@ -37,6 +38,7 @@ pub trait AdversaryDescription {
 
 pub trait ContentPack {
     fn get_spirits(&self) -> Vec<Box<dyn SpiritDescription>>;
+    fn get_boards(&self) -> Vec<BoardDescription>;
 }
 
 pub struct DefaultAdversaryDescription {
@@ -81,6 +83,19 @@ pub fn search_for_spirit(content: &Vec<Box<dyn ContentPack>>, name: &str) -> Opt
                 if n == &name {
                     return Some(s);
                 }
+            }
+        }
+    }
+
+    None
+}
+
+pub fn search_for_board(content: &Vec<Box<dyn ContentPack>>, name: &str) -> Option<BoardDescription>
+{
+    for c in content.iter() {
+        for b in c.get_boards().into_iter() {
+            if b.name == name {
+                return Some(b);
             }
         }
     }
