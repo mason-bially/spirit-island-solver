@@ -5,6 +5,7 @@ extern crate crypto;
 extern crate clap;
 
 use std::error::Error;
+use std::rc::Rc;
 use rand::prelude::*;
 use rand_chacha::{ChaChaRng};
 use self::crypto::digest::Digest;
@@ -52,9 +53,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let mut adversary: Box<dyn base::Adversary> = Box::new(base::DefaultAdversary::new());
+    let adversary: Box<dyn base::AdversaryDescription> = Box::new(base::DefaultAdversaryDescription::new());
 
-    let mut state = base::GameState::new(rng, content, adversary, spirits);
+    let map = Box::new(base::make_map(&content, vec!["A"]));
+
+    let description = Rc::new(base::GameDescription::new(content, adversary, spirits, map));
+    let mut state = base::GameState::new(description, rng);
 
     while !state.is_over()
     {

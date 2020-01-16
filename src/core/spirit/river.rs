@@ -1,10 +1,10 @@
-use crate::base::{GameState, Spirit};
+use crate::base::{GameState, SpiritDescription};
 
-pub struct SpiritRiver {
+pub struct SpiritDescriptionRiver {
 
 }
 
-impl Spirit for SpiritRiver {
+impl SpiritDescription for SpiritDescriptionRiver {
     fn name(&self) -> &'static str { "River Surges in Sunlight" }
     fn all_names(&self) -> &'static [&'static str] { &["River Surges in Sunlight", "river", "rss", "rsis"] }
 
@@ -18,9 +18,9 @@ impl Spirit for SpiritRiver {
     }
 }
 
-impl SpiritRiver {
-    pub fn new() -> SpiritRiver {
-        SpiritRiver {
+impl SpiritDescriptionRiver {
+    pub fn new() -> SpiritDescriptionRiver {
+        SpiritDescriptionRiver {
 
         }
     }

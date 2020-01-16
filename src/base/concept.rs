@@ -1,3 +1,4 @@
+use super::step::{GameStep};
 use super::game::{GameState};
 
 #[derive(Copy, Clone)]
@@ -7,7 +8,7 @@ pub enum InvaderActionKind {
     Explore
 }
 
-pub trait Spirit {
+pub trait SpiritDescription {
     fn name(&self) -> &'static str;
     fn all_names(&self) -> &'static [&'static str];
 
@@ -27,7 +28,7 @@ pub trait Event {
 
 }
 
-pub trait Adversary {
+pub trait AdversaryDescription {
     fn fear_cards(&self) -> (u8, u8, u8);
     fn invader_steps(&self) -> Vec<InvaderActionKind>;
 
@@ -35,22 +36,24 @@ pub trait Adversary {
 }
 
 pub trait ContentPack {
-    fn get_spirits(&self) -> Vec<Box<dyn Spirit>>;
+    fn get_spirits(&self) -> Vec<Box<dyn SpiritDescription>>;
 }
 
-pub struct DefaultAdversary {
+pub struct DefaultAdversaryDescription {
 
 }
 
-impl DefaultAdversary {
-    pub fn new() -> DefaultAdversary {
-        DefaultAdversary {
+impl DefaultAdversaryDescription {
+    pub fn new() -> DefaultAdversaryDescription {
+        DefaultAdversaryDescription {
             
         }
     }
 }
 
-impl Adversary for DefaultAdversary {
+use super::step::{invader_deck_setup_standard};
+
+impl AdversaryDescription for DefaultAdversaryDescription {
     fn fear_cards(&self) -> (u8, u8, u8) { 
         (3, 3, 3)
     }
@@ -59,11 +62,18 @@ impl Adversary for DefaultAdversary {
     }
 
     fn setup(&self, game: &mut GameState) {
+        let step = game.step;
 
+        match step {
+            GameStep::Init => {
+                invader_deck_setup_standard(&mut game.invader.draw);
+            },
+            _ => {},
+        }
     }
 }
 
-pub fn search_for_spirit(content: &Vec<Box<dyn ContentPack>>, name: &str) -> Option<Box<dyn Spirit>>
+pub fn search_for_spirit(content: &Vec<Box<dyn ContentPack>>, name: &str) -> Option<Box<dyn SpiritDescription>>
 {
     for c in content.iter() {
         for s in c.get_spirits().into_iter() {

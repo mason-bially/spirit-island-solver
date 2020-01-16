@@ -1,3 +1,3 @@
 mod river;
 
-pub use river::{SpiritRiver};
+pub use river::{SpiritDescriptionRiver};

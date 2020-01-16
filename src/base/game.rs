@@ -1,8 +1,9 @@
+use std::rc::Rc;
 use std::collections::VecDeque;
 use rand::prelude::*;
 
-use super::concept::{Adversary, Spirit, Power, Fear, ContentPack, InvaderActionKind};
-use super::board::{LandKind};
+use super::concept::{AdversaryDescription, SpiritDescription, Power, Fear, ContentPack, InvaderActionKind};
+use super::board::{LandKind, MapDescription};
 use super::step::{GameStep, TurnStep, InvaderStep, InvaderCard, generate_invader_deck};
 
 pub trait Deck<T> {
@@ -45,7 +46,7 @@ impl<T> Deck<T> for SimpleDeck<T> {
 }
 
 pub struct InvaderDeck {
-    draw: Vec<InvaderCard>,
+    pub draw: Vec<InvaderCard>,
     discard: Vec<InvaderCard>,
     pending: VecDeque<Vec<InvaderCard>>,
     sequence: Vec<InvaderActionKind>,
@@ -91,9 +92,16 @@ impl InvaderDeck {
 }
 
 impl Deck<InvaderCard> for InvaderDeck {
-    // have to shuffle specific parts
     fn shuffle_draw(&mut self, mut rng: &mut dyn RngCore) {
-        self.draw.shuffle(&mut rng);
+        // have to shuffle specific parts
+        let partition2 = self.draw.iter().position(|&x| if let InvaderCard::Phase2(_) = x { true } else { false }).unwrap();
+        let partition1 = self.draw.iter().position(|&x| if let InvaderCard::Phase1(_) = x { true } else { false }).unwrap();
+
+        assert!(partition2 < partition1);
+
+        self.draw[0..partition2].shuffle(&mut rng);
+        self.draw[partition2..partition1].shuffle(&mut rng);
+        self.draw[partition1..15].shuffle(&mut rng);
     }
 
     fn draw(&mut self, count: usize) -> Vec<InvaderCard> {
@@ -106,11 +114,33 @@ impl Deck<InvaderCard> for InvaderDeck {
     }
 }
 
+pub struct GameDescription {
+    pub content: Vec<Box<dyn ContentPack>>,
+    pub adversary: Box<dyn AdversaryDescription>,
+    pub spirits: Vec<Box<dyn SpiritDescription>>,
+    pub map: Box<MapDescription>,
+}
+
+impl GameDescription {
+    pub fn new(
+        content: Vec<Box<dyn ContentPack>>,
+        adversary: Box<dyn AdversaryDescription>,
+        spirits: Vec<Box<dyn SpiritDescription>>,
+        map: Box<MapDescription>,
+    ) -> GameDescription {
+        GameDescription {
+            content,
+            adversary,
+            spirits,
+            map
+        }
+    }
+}
+
 pub struct GameState {
+    desc: Rc<GameDescription>,
+
     rng: Box<dyn RngCore>,
-    content: Vec<Box<dyn ContentPack>>,
-    adversary: Box<dyn Adversary>,
-    spirits: Vec<Box<dyn Spirit>>,
 
     minor_powers: SimpleDeck<Box<dyn Power>>,
     major_powers: SimpleDeck<Box<dyn Power>>,
@@ -121,23 +151,17 @@ pub struct GameState {
     fear_generated: u8,
     fear_counts: (u8, u8, u8),
 
-    invader: InvaderDeck,
+    pub invader: InvaderDeck,
 
     pub step: GameStep,
     pub game_over_reason: Option<String>,
 }
 
 impl GameState {
-    pub fn new(rng: Box<dyn RngCore>, 
-                content: Vec<Box<dyn ContentPack>>,
-                adversary: Box<dyn Adversary>,
-                spirits: Vec<Box<dyn Spirit>>
-            ) -> GameState {
+    pub fn new(desc: Rc<GameDescription>, rng: Box<dyn RngCore>) -> GameState {
         GameState {
+            desc,
             rng,
-            content,
-            adversary,
-            spirits,
 
             minor_powers: SimpleDeck::new(),
             major_powers: SimpleDeck::new(),
@@ -218,11 +242,15 @@ impl GameState {
         let step = self.step;
         println!("---+-{:-^70}-----", format!("-  {}  -", step));
 
+        let desc = self.desc.clone();
+
         self.step = match step {
             GameStep::Init => {
                 let invaders = generate_invader_deck();
-                self.invader.set_state(invaders, Vec::new(), self.adversary.invader_steps());
+                self.invader.set_state(invaders, Vec::new(), self.desc.adversary.invader_steps());
                 self.invader.shuffle_draw(&mut self.rng);
+
+                desc.adversary.setup(self);
 
                 GameStep::SetupSpirit
             }
@@ -234,8 +262,8 @@ impl GameState {
 
                 GameStep::Turn(0, TurnStep::Spirit)
             }
-            GameStep::Turn(turn, turn_Step) => {
-                match &turn_Step {
+            GameStep::Turn(turn, turn_step) => {
+                match &turn_step {
                     TurnStep::Spirit => {
 
                         GameStep::Turn(turn, TurnStep::FastPower)

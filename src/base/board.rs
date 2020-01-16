@@ -1,6 +1,8 @@
 use std::rc::Rc;
 use std::fmt;
 
+use super::concept::{ContentPack};
+
 #[derive(Copy, Clone)]
 pub enum LandKind {
     Ocean,
@@ -27,6 +29,8 @@ pub struct LandDescription {
     kind: LandKind,
     is_coastal: bool,
     edge_range: Option<(u8, u8)>, // ranges from 0 to 20... need to figure out the tiling, is it 7 gaps a side?
+    map_index: u8,
+    board_index: u8,
 }
 
 pub struct BoardDescription {
@@ -36,4 +40,19 @@ pub struct BoardDescription {
 
 pub struct MapDescription {
     boards: Vec<BoardDescription>,
+}
+
+pub struct LandState {
+    desc: LandDescription,
+}
+
+pub struct MapState {
+    desc: Rc<MapDescription>,
+    lands: Vec<LandState>,
+}
+
+pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> MapDescription {
+    MapDescription {
+        boards: Vec::new()
+    }
 }

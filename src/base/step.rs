@@ -119,3 +119,15 @@ pub fn generate_invader_deck() -> Vec<InvaderCard> {
         InvaderCard::Phase1(LandKind::Wetlands),
     ]
 }
+
+pub fn invader_deck_setup_standard(cards: &mut Vec<InvaderCard>)
+{
+    let phase3 = cards.iter().position(|&x| if let InvaderCard::Phase3(_, _) = x { true } else { false }).unwrap();
+    cards.remove(phase3);
+
+    let phase2 = cards.iter().position(|&x| if let InvaderCard::Phase2(_) = x { true } else { false }).unwrap();
+    cards.remove(phase2);
+
+    let phase1 = cards.iter().position(|&x| if let InvaderCard::Phase1(_) = x { true } else { false }).unwrap();
+    cards.remove(phase1);
+}
