@@ -1,5 +1,9 @@
 
-All copyrighted game assets (rendered in code form) are owned by Greater Than Games. Other code is licensed under the MPL, copyright Mason Bially. This code base is for personal educational use only.
+## Licensing
+
+(Eric: I agree to the terms for creating Spirit Island game elements set forth in the FAQ)
+
+All game assets (often rendered in code form) are owned by Greater Than Games. Other code, as and where makred, is licensed under the MPL, copyright Mason Bially. This code base is intended for personal and educational use only. I do not intended to use this code commercially it - nor do I intend for others to use it commercially - due to the copyrighted elements and the [poisition of the publisher](https://querki.net/u/darker/spirit-island-faq/#!.9v5ka4u).
 
 ## AI Approaches
 
