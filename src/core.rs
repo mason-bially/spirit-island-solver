@@ -1,3 +1,5 @@
+// This file contains copyrighted assets owned by Greater Than Games.
+
 use crate::base::{ContentPack, SpiritDescription, BoardDescription};
 
 mod spirit;

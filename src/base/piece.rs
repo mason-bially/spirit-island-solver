@@ -1,3 +1,4 @@
+// This file contains copyrighted assets owned by Greater Than Games.
 
 #[derive(Copy, Clone)]
 pub enum TokenKind {

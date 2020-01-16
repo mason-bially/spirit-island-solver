@@ -1,3 +1,5 @@
+// This file contains copyrighted assets owned by Greater Than Games.
+
 use std::rc::Rc;
 use std::collections::VecDeque;
 use rand::prelude::*;

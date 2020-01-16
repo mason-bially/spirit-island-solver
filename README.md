@@ -1,4 +1,5 @@
 
+All copyrighted game assets (rendered in code form) are owned by Greater Than Games. Other code is licensed under the MPL, copyright Mason Bially. This code base is for personal educational use only.
 
 ## AI Approaches
 

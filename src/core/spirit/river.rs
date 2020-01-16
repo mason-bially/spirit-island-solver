@@ -4,6 +4,8 @@ pub struct SpiritDescriptionRiver {
 
 }
 
+// All copyrighted game assets (rendered in code form) are owned by Greater Than Games.
+
 impl SpiritDescription for SpiritDescriptionRiver {
     fn name(&self) -> &'static str { "River Surges in Sunlight" }
     fn all_names(&self) -> &'static [&'static str] { &["River Surges in Sunlight", "river", "rss", "rsis"] }

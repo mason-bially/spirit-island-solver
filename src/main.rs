@@ -1,3 +1,4 @@
+// This file contains copyrighted assets owned by Greater Than Games.
 
 #[macro_use]
 extern crate simple_error;
