@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut hasher = Sha1::new();
     hasher.input_str(matches.value_of("seed").unwrap_or("default"));
     hasher.result(&mut seed);
-    let rng = Box::new(ChaChaRng::from_seed(seed));
+    let rng = Box::new(base::DeterministicChaCha::new(ChaChaRng::from_seed(seed)));
 
     let mut content: Vec<Box<dyn base::ContentPack>> = Vec::new();
     content.push(Box::new(CoreContent::new()));

@@ -25,7 +25,7 @@ pub enum InvaderStep {
     BlightedIsland,
     Event(u8, u8),
     FearEffect(u8),
-    InvaderAction(u8, InvaderActionKind),
+    InvaderAction(u8, u8), // Index of action, index of card
     InvaderAdvance,
 }
 
@@ -54,7 +54,7 @@ impl fmt::Display for InvaderStep {
             InvaderStep::BlightedIsland => write!(f, "Blighted Island Effect"),
             InvaderStep::Event(card, part) => write!(f, "Event Card {} - Part {}", card, part),
             InvaderStep::FearEffect(card) => write!(f, "Fear Card {}", card),
-            InvaderStep::InvaderAction(step, kind) => write!(f, "Invader {} - {}", step, kind),
+            InvaderStep::InvaderAction(step, card) => write!(f, "Invader Step {} Card {}", step, card),
             InvaderStep::InvaderAdvance => write!(f, "Invader Advance"),
        }
     }

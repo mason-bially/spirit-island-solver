@@ -53,11 +53,13 @@ pub struct MapDescription {
     pub land_count: u8,
 }
 
+#[derive(Clone)]
 pub struct LandState {
     pub desc: Rc<LandDescription>,
     pub pieces: Vec<Piece>,
 }
 
+#[derive(Clone)]
 pub struct MapState {
     pub desc: Rc<MapDescription>,
     pub lands: Vec<LandState>,

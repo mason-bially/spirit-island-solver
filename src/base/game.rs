@@ -1,12 +1,59 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
-use std::rc::Rc;
-use std::collections::VecDeque;
-use rand::prelude::*;
+use std::{
+    rc::Rc,
+    clone::Clone,
+    collections::VecDeque,
+};
 
-use super::concept::{AdversaryDescription, SpiritDescription, Power, Fear, ContentPack, InvaderActionKind};
-use super::board::{LandKind, MapDescription, MapState};
-use super::step::{GameStep, TurnStep, InvaderStep, InvaderCard, generate_invader_deck};
+use rand::prelude::*;
+use rand_chacha::{ChaChaRng};
+
+use super::{
+    effect::{Effect},
+    decision::{Decision},
+    concept::{AdversaryDescription, SpiritDescription, ContentPack, InvaderActionKind},
+    board::{MapDescription, MapState},
+    step::{GameStep, TurnStep, InvaderStep, InvaderCard, generate_invader_deck},
+};
+
+
+/* 
+    Our RNG needs to be deterministic and copyable.
+*/
+
+pub trait DeterministicRng {
+    fn get_rng<'a>(&'a mut self) -> &'a mut dyn RngCore;
+    fn box_clone(&self) -> Box<dyn DeterministicRng>;
+}
+
+pub struct DeterministicChaCha {
+    rng: ChaChaRng
+}
+
+impl DeterministicChaCha {
+    pub fn new(rng: ChaChaRng) -> Self {
+        DeterministicChaCha {
+            rng
+        }
+    }
+}
+
+impl DeterministicRng for DeterministicChaCha {
+    fn get_rng<'a>(&'a mut self) -> &'a mut dyn RngCore {
+        &mut self.rng
+    }
+    fn box_clone(&self) -> Box<dyn DeterministicRng> {
+        Box::new(DeterministicChaCha::new(self.rng.clone()))
+    }
+}
+
+impl Clone for Box<dyn DeterministicRng> {
+    fn clone(&self) -> Self {
+        self.box_clone()
+    }
+}
+
 
 /*
     In general decks of cards organized as Vecs will follow physical card rules:
@@ -22,13 +69,14 @@ pub trait Deck<T> {
     fn draw(&mut self, count: usize) -> Vec<T>;
 }
 
+#[derive(Clone)]
 pub struct SimpleDeck<T> {
     draw: Vec<T>,
     discard: Vec<T>,
 }
 
 impl<T> SimpleDeck<T> {
-    pub fn new() -> SimpleDeck<T> {
+    pub fn new() -> Self {
         SimpleDeck::<T> {
             draw: Vec::new(),
             discard: Vec::new(),
@@ -56,6 +104,7 @@ impl<T> Deck<T> for SimpleDeck<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct InvaderDeck {
     pub draw: Vec<InvaderCard>,
     discard: Vec<InvaderCard>,
@@ -148,13 +197,17 @@ impl GameDescription {
     }
 }
 
+#[derive(Clone)]
 pub struct GameState {
     pub desc: Rc<GameDescription>,
 
-    rng: Box<dyn RngCore>,
+    rng: Box<dyn DeterministicRng>,
 
     pub step: GameStep,
+    pub next_step: GameStep,
     pub game_over_reason: Option<String>,
+
+    pub decisions: Vec<Decision>,
 
     pub invader: InvaderDeck,
 
@@ -162,6 +215,7 @@ pub struct GameState {
 
     pub blight_remaining: u8,
 
+    /*
     fears: SimpleDeck<Box<dyn Fear>>,
     fears_pending: Vec<Box<dyn Fear>>,
     fear_pool: u8,
@@ -170,17 +224,20 @@ pub struct GameState {
 
     minor_powers: SimpleDeck<Box<dyn Power>>,
     major_powers: SimpleDeck<Box<dyn Power>>,
-
+    */
 }
 
 impl GameState {
-    pub fn new(desc: Rc<GameDescription>, rng: Box<dyn RngCore>) -> GameState {
+    pub fn new(desc: Rc<GameDescription>, rng: Box<dyn DeterministicRng>) -> GameState {
         GameState {
             desc: desc.clone(),
             rng,
 
             step: GameStep::Init,
+            next_step: GameStep::Init,
             game_over_reason: None,
+
+            decisions: Vec::new(),
 
             invader: InvaderDeck::new(),
 
@@ -188,6 +245,7 @@ impl GameState {
 
             blight_remaining: 5,
 
+            /*
             fears: SimpleDeck::new(),
             fears_pending: Vec::new(),
             fear_pool: 0,
@@ -196,6 +254,7 @@ impl GameState {
 
             minor_powers: SimpleDeck::new(),
             major_powers: SimpleDeck::new(),
+            */
         }
     }
 
@@ -204,6 +263,10 @@ impl GameState {
             GameStep::Victory | GameStep::Defeat => true,
             _ => false,
         }
+    }
+
+    pub fn do_effect<T : Effect>(&mut self, effect: T) -> Result<(), ()> {
+        effect.apply_effect(self)
     }
 
     pub fn do_defeat(&mut self, defeat_reason: &str) -> Result<(), ()> {
@@ -220,92 +283,64 @@ impl GameState {
         Err(())
     }
 
-    pub fn do_add_blight_effect(&mut self, land_index: u8) -> Result<(), ()> {
-        println!("   |    `===> blighting land {}.", land_index);
-
-        let mut land = self.map.lands.get_mut(land_index as usize).unwrap();
-
-        // 1. Remove blight from card
-        if self.blight_remaining == 0 {
-            self.do_defeat("No blight is left.")?;
-        }
-
-        self.blight_remaining -= 1;
-
-        // 2. Add blight to the land
-        //land.add_blight();
-
-        // 3. Kill presence
-        // TODO
-
-        // 4. Check for cascade
-        // This is a decision point... ugh
-        
-        Ok(())
-    }
-
-    pub fn do_ravage_effect(&mut self, land_index: u8) -> Result<(), ()> {
-        println!("   | `--. > Ravaging in land {}.", land_index);
-
-        let mut land = self.map.lands.get_mut(land_index as usize).unwrap();
-        let invader_damage: u16 = land.pieces.iter().map(|p| p.invader_damage()).sum();
-
-        let blight_threshold = 2;
-
-        // TODO intercept and modify this damage:
-        // * Adversary manipulations
-        // * Spirit manipulations
-        // * Powers and other effects
-        //   * defense
-        //   * modify invader damage
-        //   * modify dahan health
-        //   * modify blight threshold
-        // * ...
-
-        // Damage is done in two steps, one to the land and one to the dahan
-        if invader_damage >= blight_threshold {
-            self.do_add_blight_effect(land_index)?;
-        }
-
-        Ok(())
-    }
-
     pub fn step_until_decision(&mut self) -> Result<(), ()> {
         while !self.is_over() {
             self.step()?;
+            self.step = self.next_step;
         }
 
         Ok(())
     }
 
-    pub fn step_to_next_event(&self) -> Result<InvaderStep, ()> {
+    pub fn step_to_next_event(&mut self) -> Result<InvaderStep, ()> {
         Ok(self.step_to_next_fear()?)
     }
-    pub fn step_to_next_fear(&self) -> Result<InvaderStep, ()> {
+    pub fn step_to_next_fear(&mut self) -> Result<InvaderStep, ()> {
         let next_card = match &self.step {
             GameStep::Turn(_, TurnStep::Invader(InvaderStep::FearEffect(card))) => *card + 1,
             _ => 0,
         };
 
-        if (next_card as usize) < self.fears_pending.len() {
-            Ok(InvaderStep::FearEffect(next_card))
-        }
-        else {
+        //if (next_card as usize) < self.fears_pending.len() {
+        //    Ok(InvaderStep::FearEffect(next_card))
+        //}
+        //else {
             Ok(self.step_to_next_invader()?)
-        }
+        //}
     }
-    pub fn step_to_next_invader(&self) -> Result<InvaderStep, ()> {
-        let next_action = match &self.step {
-            GameStep::Turn(_, TurnStep::Invader(InvaderStep::InvaderAction(action, _))) => *action + 1,
-            _ => 0,
+    pub fn step_to_next_invader(&mut self) -> Result<InvaderStep, ()> {
+        let original_next = match &self.step {
+            GameStep::Turn(_, TurnStep::Invader(InvaderStep::InvaderAction(action, part))) => (*action, *part + 1),
+            _ => (0, 0),
         };
+        let (mut next_action, mut next_part) = original_next;
 
-        if next_action < self.invader.step_count() {
-            Ok(InvaderStep::InvaderAction(next_action, self.invader.get_step_kind(next_action)))
+        while next_action < self.invader.step_count() {
+            if (next_part as usize) < self.invader.pending.get(next_action as usize).unwrap().len() {
+                return Ok(InvaderStep::InvaderAction(next_action, next_part));
+            }
+            else {
+                next_action += 1;
+                next_part = 0;
+            }
         }
-        else {
-            Ok(InvaderStep::InvaderAdvance)
+
+        // last action is a draw! the pending will be empty at first
+        // so we backtrack here
+        if next_action == self.invader.step_count()
+            && 0 == self.invader.pending.back().unwrap().len() {
+                
+            // TODO: (the draw function must account for additional draws! this only happens once!)
+            if self.invader.draw.len() == 0 {
+                self.do_defeat("Invader deck empty!")?;
+            } else {
+                self.invader.draw_last_step();
+            }
+
+            return Ok(InvaderStep::InvaderAction(next_action - 1, 0));
         }
+
+        Ok(InvaderStep::InvaderAdvance)
     }
 
     pub fn step(&mut self) -> Result<(), ()> {
@@ -314,11 +349,11 @@ impl GameState {
 
         let desc = self.desc.clone();
 
-        self.step = match step {
+        self.next_step = match step {
             GameStep::Init => {
                 let invaders = generate_invader_deck();
                 self.invader.set_state(invaders, Vec::new(), self.desc.adversary.invader_steps());
-                self.invader.shuffle_draw(&mut self.rng);
+                self.invader.shuffle_draw(&mut self.rng.get_rng());
 
                 desc.adversary.setup(self);
 
@@ -356,33 +391,26 @@ impl GameState {
 
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_fear()?))
                             }
-                            InvaderStep::InvaderAction(inv_action, inv_kind) => {
-                                if self.invader.step_count() == inv_action + 1 {
-                                    if self.invader.draw.len() == 0 {
-                                        self.do_defeat("Invader deck empty!")?;
-                                    } else {
-                                        self.invader.draw_last_step();
-                                    }
-                                }
-
-                                let cards = self.invader.pending.get(*inv_action as usize).unwrap().clone();
+                            InvaderStep::InvaderAction(inv_action, inv_card) => {
+                                let inv_kind = self.invader.get_step_kind(*inv_action);
+                                let &card = self.invader.pending
+                                    .get(*inv_action as usize).unwrap()
+                                    .get(*inv_card as usize).unwrap();
 
                                 // BaC pg. 14, we go bottom to top
-                                for card in cards {
-                                    let lands = desc.map.lands_iter().filter(|l| card.can_target(l));
+                                let lands = desc.map.lands_iter().filter(|l| card.can_target(l));
 
-                                    match &inv_kind {
-                                        InvaderActionKind::Explore => {
-                                            println!("   |-. > Invader Action Card: {}", card);
-                                        }
-                                        InvaderActionKind::Build => {
-                                            println!("   |-. > Invader Action Card: {}", card);
-                                        }
-                                        InvaderActionKind::Ravage => {
-                                            println!("   |-. > Invader Action Card: {}", card);
-                                            for land in lands {
-                                                self.do_ravage_effect(land.map_index)?;
-                                            }
+                                match &inv_kind {
+                                    InvaderActionKind::Explore => {
+                                        println!("   |-. > Invader Action Card: {}", card);
+                                    }
+                                    InvaderActionKind::Build => {
+                                        println!("   |-. > Invader Action Card: {}", card);
+                                    }
+                                    InvaderActionKind::Ravage => {
+                                        println!("   |-. > Invader Action Card: {}", card);
+                                        for land in lands {
+                                            //self.do_effect(RavageEffect { })?;
                                         }
                                     }
                                 }
