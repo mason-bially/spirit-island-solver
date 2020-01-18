@@ -6,8 +6,8 @@ pub trait Effect {
 
 
 pub struct AddBlightEffect {
-    land_index: u8,
-    count: u8,
+    pub land_index: u8,
+    pub count: u8,
 }
 
 impl Effect for AddBlightEffect {
@@ -38,19 +38,19 @@ impl Effect for AddBlightEffect {
 
 
 pub struct DoSpiritDamageEffect {
-    land_index: u8,
-    count: u16,
+    pub land_index: u8,
+    pub count: u16,
 }
 
 
 pub struct DoInvaderDamageEffect {
-    land_index: u8,
-    count: u16,
+    pub land_index: u8,
+    pub count: u16,
 }
 
 
 pub struct RavageEffect {
-    land_index: u8,
+    pub land_index: u8,
 }
 
 impl Effect for RavageEffect {

@@ -9,13 +9,7 @@ use std::{
 use rand::prelude::*;
 use rand_chacha::{ChaChaRng};
 
-use super::{
-    effect::{Effect},
-    decision::{Decision},
-    concept::{AdversaryDescription, SpiritDescription, ContentPack, InvaderActionKind},
-    board::{MapDescription, MapState},
-    step::{GameStep, TurnStep, InvaderStep, InvaderCard, generate_invader_deck},
-};
+use super::*;
 
 
 /* 
@@ -400,17 +394,15 @@ impl GameState {
                                 // BaC pg. 14, we go bottom to top
                                 let lands = desc.map.lands_iter().filter(|l| card.can_target(l));
 
+                                println!("   |-. > Invader Action Card: {}", card);
                                 match &inv_kind {
                                     InvaderActionKind::Explore => {
-                                        println!("   |-. > Invader Action Card: {}", card);
                                     }
                                     InvaderActionKind::Build => {
-                                        println!("   |-. > Invader Action Card: {}", card);
                                     }
                                     InvaderActionKind::Ravage => {
-                                        println!("   |-. > Invader Action Card: {}", card);
                                         for land in lands {
-                                            //self.do_effect(RavageEffect { })?;
+                                            self.do_effect(RavageEffect { land_index: land.map_index })?;
                                         }
                                     }
                                 }
