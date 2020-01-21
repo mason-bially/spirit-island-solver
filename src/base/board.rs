@@ -3,10 +3,11 @@
 use std::{
     rc::{Rc},
     fmt,
+    iter::*,
 };
 
 use super::{
-    piece::{Piece},
+    piece::{TokenKind, InvaderKind, Piece},
     concept::{ContentPack, search_for_board},
 };
 
@@ -102,6 +103,12 @@ impl MapDescription {
 
     pub fn lands_iter(&self) -> std::slice::Iter<Rc<LandDescription>> {
         self.lands.iter()
+    }
+}
+
+impl LandState {
+    pub fn add_token(&mut self, kind: TokenKind) {
+        let entry = self.pieces.iter_mut().find(|Piece::Token{kind: pkind, ..}| *pkind == kind);
     }
 }
 

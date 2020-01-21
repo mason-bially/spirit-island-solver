@@ -1,6 +1,6 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum TokenKind {
     Blight,
     Beast,
@@ -10,7 +10,7 @@ pub enum TokenKind {
     Badlands,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum InvaderKind {
     Explorer,
     Town,
