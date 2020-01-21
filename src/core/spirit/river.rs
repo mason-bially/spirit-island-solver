@@ -1,10 +1,10 @@
+// This file contains copyrighted assets owned by Greater Than Games.
+
 use crate::base::{GameState, SpiritDescription};
 
 pub struct SpiritDescriptionRiver {
 
 }
-
-// All copyrighted game assets (rendered in code form) are owned by Greater Than Games.
 
 impl SpiritDescription for SpiritDescriptionRiver {
     fn name(&self) -> &'static str { "River Surges in Sunlight" }
