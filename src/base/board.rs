@@ -107,8 +107,17 @@ impl MapDescription {
 }
 
 impl LandState {
-    pub fn add_token(&mut self, kind: TokenKind) {
-        let entry = self.pieces.iter_mut().find(|Piece::Token{kind: pkind, ..}| *pkind == kind);
+    pub fn add_tokens(&mut self, kind: TokenKind, amount: u8) {
+        let entry = self.pieces.iter_mut().find(|piece| match piece {
+            Piece::Token{kind: pkind, ..} => *pkind == kind,
+            _ => false
+        });
+
+        if let Some(Piece::Token{count, ..}) = entry {
+            *count += amount;
+        } else {
+            self.pieces.push(Piece::Token{kind: kind, count: amount});
+        }
     }
 }
 

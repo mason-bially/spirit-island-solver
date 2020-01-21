@@ -1,4 +1,4 @@
-use super::game::{GameState};
+use super::*;
 
 pub trait Effect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), ()>;
@@ -14,8 +14,6 @@ impl Effect for AddBlightEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
         println!("   |    `===> blighting land {}.", self.land_index);
 
-        let mut land = game.map.lands.get_mut(self.land_index as usize).unwrap();
-
         // 1. Remove blight from card
         if game.blight_remaining == 0 {
             game.do_defeat("No blight is left.")?;
@@ -24,10 +22,11 @@ impl Effect for AddBlightEffect {
         game.blight_remaining -= 1;
 
         // 2. Add blight to the land
-        //land.add_blight();
+        let mut land = game.map.lands.get_mut(self.land_index as usize).unwrap();
+        land.add_tokens(TokenKind::Blight, 1);
 
         // 3. Kill presence
-        // TODO
+        //land.destroy_presence();
 
         // 4. Check for cascade
         // This is a decision point... ugh
