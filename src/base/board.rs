@@ -101,8 +101,10 @@ impl MapDescription {
         self.lands.get(index as usize).unwrap().clone()
     }
 
-    pub fn lands_iter(&self) -> std::slice::Iter<Rc<LandDescription>> {
-        self.lands.iter()
+    pub fn lands_adjacent(&self, adjacent_to_index: u8) -> Vec<Rc<LandDescription>> {
+        self.lands.clone().into_iter()
+            .filter(|l| l.adjacent.contains(&adjacent_to_index))
+            .collect()
     }
 }
 
@@ -118,6 +120,10 @@ impl LandState {
         } else {
             self.pieces.push(Piece::Token{kind: kind, count: amount});
         }
+    }
+
+    pub fn add_invader(&mut self, kind: InvaderKind) {
+        self.pieces.push(Piece::Invader{kind: kind, health: kind.health()});
     }
 }
 

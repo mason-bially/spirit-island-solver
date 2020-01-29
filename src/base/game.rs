@@ -392,13 +392,19 @@ impl GameState {
                                     .get(*inv_card as usize).unwrap();
 
                                 // BaC pg. 14, we go bottom to top
-                                let lands = desc.map.lands_iter().filter(|l| card.can_target(l));
+                                let lands = desc.map.lands.iter().filter(|l| card.can_target(l));
 
                                 println!("   |-. > Invader Action Card: {}", card);
                                 match &inv_kind {
                                     InvaderActionKind::Explore => {
+                                        for land in lands {
+                                            self.do_effect(ExploreEffect { land_index: land.map_index })?;
+                                        }
                                     }
                                     InvaderActionKind::Build => {
+                                        for land in lands {
+                                            self.do_effect(BuildEffect { land_index: land.map_index })?;
+                                        }
                                     }
                                     InvaderActionKind::Ravage => {
                                         for land in lands {
