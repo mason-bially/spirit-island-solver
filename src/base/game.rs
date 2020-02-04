@@ -202,6 +202,7 @@ pub struct GameState {
     pub game_over_reason: Option<String>,
 
     pub decisions: Vec<Decision>,
+    pub effect_stack: Vec<Box<dyn Effect>>,
 
     pub invader: InvaderDeck,
 
@@ -232,6 +233,7 @@ impl GameState {
             game_over_reason: None,
 
             decisions: Vec::new(),
+            effect_stack: Vec::new(),
 
             invader: InvaderDeck::new(),
 
@@ -259,8 +261,16 @@ impl GameState {
         }
     }
 
+    pub fn log(&self, s: String) {
+        println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), s);
+    }
+
     pub fn do_effect<T : Effect>(&mut self, effect: T) -> Result<(), ()> {
-        effect.apply_effect(self)
+        self.effect_stack.push(effect.box_clone());
+        let res = effect.apply_effect(self)?;
+        self.effect_stack.pop();
+
+        Ok(res)
     }
 
     pub fn do_defeat(&mut self, defeat_reason: &str) -> Result<(), ()> {
@@ -394,7 +404,7 @@ impl GameState {
                                 // BaC pg. 14, we go bottom to top
                                 let lands = desc.map.lands.iter().filter(|l| card.can_target(l));
 
-                                println!("   |-. > Invader Action Card: {}", card);
+                                self.log(format!("Invader Action Card: {}", card));
                                 match &inv_kind {
                                     InvaderActionKind::Explore => {
                                         for land in lands {
