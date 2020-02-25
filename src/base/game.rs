@@ -132,7 +132,7 @@ impl InvaderDeck {
         for step in self.sequence.iter() { self.pending.push_back(Vec::new()); }
     }
 
-    pub fn draw_last_step(&mut self) {
+    pub fn draw_into_pending(&mut self) {
         let draw = self.draw(1);
         let card = draw.first().unwrap();
 
@@ -201,7 +201,7 @@ pub struct GameState {
     pub next_step: GameStep,
     pub game_over_reason: Option<String>,
 
-    pub decisions: Vec<Decision>,
+    pub choices: VecDeque<DecisionChoice>,
     pub effect_stack: Vec<Box<dyn Effect>>,
 
     pub invader: InvaderDeck,
@@ -232,7 +232,7 @@ impl GameState {
             next_step: GameStep::Init,
             game_over_reason: None,
 
-            decisions: Vec::new(),
+            choices: VecDeque::new(),
             effect_stack: Vec::new(),
 
             invader: InvaderDeck::new(),
@@ -271,6 +271,13 @@ impl GameState {
         self.effect_stack.pop();
 
         Ok(res)
+    }
+
+    pub fn consume_choice(&mut self) -> Result<DecisionChoice, ()> {
+        match self.choices.pop_front() {
+            Some(v) => Ok(v),
+            None => Err(())
+        }
     }
 
     pub fn do_defeat(&mut self, defeat_reason: &str) -> Result<(), ()> {
@@ -319,6 +326,7 @@ impl GameState {
         };
         let (mut next_action, mut next_part) = original_next;
 
+        // BaC pg. 14, we go bottom to top
         while next_action < self.invader.step_count() {
             if (next_part as usize) < self.invader.pending.get(next_action as usize).unwrap().len() {
                 return Ok(InvaderStep::InvaderAction(next_action, next_part));
@@ -338,7 +346,7 @@ impl GameState {
             if self.invader.draw.len() == 0 {
                 self.do_defeat("Invader deck empty!")?;
             } else {
-                self.invader.draw_last_step();
+                self.invader.draw_into_pending();
             }
 
             return Ok(InvaderStep::InvaderAction(next_action - 1, 0));
@@ -368,6 +376,20 @@ impl GameState {
                 GameStep::SetupExplore
             }
             GameStep::SetupExplore => {
+                // The initial explore
+                self.invader.draw_into_pending();
+
+                let &card = self.invader.pending.back().unwrap().first().unwrap();
+                self.log(format!("Invader Action Card: {}", card));
+
+                let lands = desc.map.lands.iter().filter(|l| card.can_target(l));
+                for land in lands {
+                    self.do_effect(ExploreEffect { land_index: land.map_index })?;
+                }
+
+                self.invader.advance();
+
+                // TODO: Post explore adversary setup?
 
                 GameStep::Turn(0, TurnStep::Spirit)
             }
@@ -401,7 +423,7 @@ impl GameState {
                                     .get(*inv_action as usize).unwrap()
                                     .get(*inv_card as usize).unwrap();
 
-                                // BaC pg. 14, we go bottom to top
+                                // TODO: Technically the order here is a decision...
                                 let lands = desc.map.lands.iter().filter(|l| card.can_target(l));
 
                                 self.log(format!("Invader Action Card: {}", card));

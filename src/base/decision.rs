@@ -1,21 +1,25 @@
-use std::rc::Rc;
 
-use super::{ GameState };
+use std::{
+    any::Any
+};
 
-#[derive(Copy, Clone)]
-pub enum Decision {
-    SequenceResolution(u8),
-    DamageToInvaders(u16),
-    CascadeBlight(u8),
-}
+use super::*;
 
-#[derive(Copy, Clone)]
-pub enum Choice {
+pub trait Decision : Effect {
+    fn is_decision(&self) -> bool {
+        true
+    }
 
+    fn as_any(&self) -> Box<dyn Any>;
 }
 
 #[derive(Clone)]
-pub struct DecisionNode {
-    pub decision: Decision,
-    pub choice: Choice,
+pub enum DecisionChoice {
+    TargetLand(u8),
+    SequenceDecision(Vec<u8>),
 }
+
+mod cascade_blight;
+
+pub use self::cascade_blight::{CascadeBlightDecision};
+

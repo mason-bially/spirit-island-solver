@@ -15,8 +15,10 @@ use clap::{Arg, App, SubCommand};
 
 mod base;
 mod core;
+mod solve;
 
 use crate::core::{CoreContent};
+use crate::solve::{SolveEngine, SimpleDecisionMaker};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("Spirit Island Solver")
@@ -62,12 +64,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let description = Rc::new(base::GameDescription::new(content, adversary, spirits, map));
     let mut state = base::GameState::new(description, rng);
 
-    state.step_until_decision();
-
-    match state.step {
-        base::GameStep::Victory => { println!("Vectory!    {}", state.game_over_reason.unwrap()); }
-        base::GameStep::Defeat => {  println!("Defeat :(   {}", state.game_over_reason.unwrap()); }
-        _ => panic!()
+    let res = state.step_until_decision();
+    match res {
+        Ok(_) => match state.step {
+            base::GameStep::Victory => { println!("Vectory!    {}", state.game_over_reason.unwrap()); }
+            base::GameStep::Defeat  => { println!("Defeat :(   {}", state.game_over_reason.unwrap()); }
+            _ => panic!()
+        },
+        Err(_) => {
+            if state.effect_stack.len() != 0 {
+                println!("Decision required!");
+            }
+        }
     }
 
     Ok(())

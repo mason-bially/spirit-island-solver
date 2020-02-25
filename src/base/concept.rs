@@ -41,39 +41,6 @@ pub trait ContentPack {
     fn get_boards(&self) -> Vec<BoardDescription>;
 }
 
-pub struct DefaultAdversaryDescription {
-
-}
-
-impl DefaultAdversaryDescription {
-    pub fn new() -> DefaultAdversaryDescription {
-        DefaultAdversaryDescription {
-            
-        }
-    }
-}
-
-use super::step::{invader_deck_setup_standard};
-
-impl AdversaryDescription for DefaultAdversaryDescription {
-    fn fear_cards(&self) -> (u8, u8, u8) { 
-        (3, 3, 3)
-    }
-    fn invader_steps(&self) -> Vec<InvaderActionKind> {
-        vec![InvaderActionKind::Ravage, InvaderActionKind::Build, InvaderActionKind::Explore]
-    }
-
-    fn setup(&self, game: &mut GameState) {
-        let step = game.step;
-
-        match step {
-            GameStep::Init => {
-                invader_deck_setup_standard(&mut game.invader.draw);
-            },
-            _ => {},
-        }
-    }
-}
 
 pub fn search_for_spirit(content: &Vec<Box<dyn ContentPack>>, name: &str) -> Option<Box<dyn SpiritDescription>>
 {

@@ -28,6 +28,7 @@ impl Effect for AddBlightEffect {
 
         // 4. Check for cascade
         // This is a decision point... ugh
+        game.do_effect(CascadeBlightDecision {src_land_index: self.land_index})?;
         
         Ok(())
     }

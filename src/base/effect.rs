@@ -7,6 +7,10 @@ use super::*;
 pub trait Effect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), ()>;
     fn box_clone(&self) -> Box<dyn Effect>;
+
+    fn is_decision(&self) -> bool {
+        false
+    }
 }
 
 impl Clone for Box<dyn Effect> {
