@@ -191,6 +191,16 @@ impl GameDescription {
     }
 }
 
+// The state of the game state is invalid
+pub enum StepFailure {
+    InternalError(String),
+    RulesViolation(String),
+    GameOverVictory,
+    GameOverDefeat,
+    DecisionRequired,
+    DecisionMismatch,
+}
+
 #[derive(Clone)]
 pub struct GameState {
     pub desc: Rc<GameDescription>,
@@ -265,7 +275,7 @@ impl GameState {
         println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), s);
     }
 
-    pub fn do_effect<T : Effect>(&mut self, effect: T) -> Result<(), ()> {
+    pub fn do_effect<T : Effect>(&mut self, effect: T) -> Result<(), StepFailure> {
         self.effect_stack.push(effect.box_clone());
         let res = effect.apply_effect(self)?;
         self.effect_stack.pop();
@@ -273,40 +283,31 @@ impl GameState {
         Ok(res)
     }
 
-    pub fn consume_choice(&mut self) -> Result<DecisionChoice, ()> {
+    pub fn consume_choice(&mut self) -> Result<DecisionChoice, StepFailure> {
         match self.choices.pop_front() {
             Some(v) => Ok(v),
-            None => Err(())
+            None => Err(StepFailure::DecisionRequired)
         }
     }
 
-    pub fn do_defeat(&mut self, defeat_reason: &str) -> Result<(), ()> {
+    pub fn do_defeat(&mut self, defeat_reason: &str) -> Result<(), StepFailure> {
         self.game_over_reason = Some(defeat_reason.to_string());
         self.step = GameStep::Defeat;
 
-        Err(())
+        Err(StepFailure::GameOverDefeat)
     }
     
-    pub fn do_victory(&mut self, victory_reason: &str) -> Result<(), ()> {
+    pub fn do_victory(&mut self, victory_reason: &str) -> Result<(), StepFailure> {
         self.game_over_reason = Some(victory_reason.to_string());
         self.step = GameStep::Victory;
 
-        Err(())
+        Err(StepFailure::GameOverVictory)
     }
 
-    pub fn step_until_decision(&mut self) -> Result<(), ()> {
-        while !self.is_over() {
-            self.step()?;
-            self.step = self.next_step;
-        }
-
-        Ok(())
-    }
-
-    pub fn step_to_next_event(&mut self) -> Result<InvaderStep, ()> {
+    pub fn step_to_next_event(&mut self) -> Result<InvaderStep, StepFailure> {
         Ok(self.step_to_next_fear()?)
     }
-    pub fn step_to_next_fear(&mut self) -> Result<InvaderStep, ()> {
+    pub fn step_to_next_fear(&mut self) -> Result<InvaderStep, StepFailure> {
         let next_card = match &self.step {
             GameStep::Turn(_, TurnStep::Invader(InvaderStep::FearEffect(card))) => *card + 1,
             _ => 0,
@@ -319,7 +320,7 @@ impl GameState {
             Ok(self.step_to_next_invader()?)
         //}
     }
-    pub fn step_to_next_invader(&mut self) -> Result<InvaderStep, ()> {
+    pub fn step_to_next_invader(&mut self) -> Result<InvaderStep, StepFailure> {
         let original_next = match &self.step {
             GameStep::Turn(_, TurnStep::Invader(InvaderStep::InvaderAction(action, part))) => (*action, *part + 1),
             _ => (0, 0),
@@ -355,7 +356,7 @@ impl GameState {
         Ok(InvaderStep::InvaderAdvance)
     }
 
-    pub fn step(&mut self) -> Result<(), ()> {
+    pub fn step(&mut self) -> Result<(), StepFailure> {
         let step = self.step;
         println!("---+-{:-^70}-----", format!("-  {}  -", step));
 
@@ -473,6 +474,13 @@ impl GameState {
                 panic!("Cannot step defeat state!");
             }
         };
+
+        Ok(())
+    }
+
+    pub fn advance(&mut self) -> Result<(), ()> {
+        self.step = self.next_step;
+        //self.choices.clear();
 
         Ok(())
     }

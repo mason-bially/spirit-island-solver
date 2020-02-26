@@ -122,6 +122,18 @@ impl LandState {
         }
     }
 
+    pub fn get_token_count(&mut self, kind: TokenKind) -> u8 {
+        let entry = self.pieces.iter().find(|piece| match piece {
+            Piece::Token{kind: pkind, ..} => *pkind == kind,
+            _ => false
+        });
+
+        match entry {
+            Some(Piece::Token {count, ..}) => *count,
+            _ => 0
+        }
+    }
+
     pub fn add_invader(&mut self, kind: InvaderKind) {
         self.pieces.push(Piece::Invader{kind: kind, health: kind.health()});
     }

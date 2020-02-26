@@ -19,7 +19,7 @@ pub struct DoInvaderDamageEffect {
 }
 
 impl Effect for DoInvaderDamageEffect {
-    fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("invader damage in {}.", self.land_index));
 
         let land = game.map.lands.get_mut(self.land_index as usize).unwrap();

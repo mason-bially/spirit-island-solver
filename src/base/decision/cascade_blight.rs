@@ -7,16 +7,22 @@ pub struct CascadeBlightDecision {
 }
 
 impl Effect for CascadeBlightDecision {
-    fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
-        let land_index = match game.consume_choice()
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        let land_index = match game.consume_choice()?
         {
-            Ok(DecisionChoice::TargetLand(land)) => Ok(land),
-            _ => Err(()),
+            DecisionChoice::TargetLand(land) => Ok(land),
+            _ => Err(StepFailure::DecisionMismatch),
         }?;
+
+        let src_land = game.desc.map.lands.get(self.src_land_index as usize).unwrap();
+
+        if !src_land.adjacent.contains(&land_index) {
+            return Err(StepFailure::RulesViolation("Cascade Blight: Destination land is not adjacent to source land!".to_string()))
+        }
 
         game.log(format!("cascading blight to: {}", land_index));
 
-        game.do_effect(AddBlightEffect { land_index, count: 1 });
+        game.do_effect(AddBlightEffect { land_index, count: 1 })?;
         
         Ok(())
     }

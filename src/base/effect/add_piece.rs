@@ -9,7 +9,7 @@ pub struct AddBlightEffect {
 }
 
 impl Effect for AddBlightEffect {
-    fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("blighting land {}.", self.land_index));
 
         // 1. Remove blight from card
@@ -27,8 +27,9 @@ impl Effect for AddBlightEffect {
         //land.destroy_presence();
 
         // 4. Check for cascade
-        // This is a decision point... ugh
-        game.do_effect(CascadeBlightDecision {src_land_index: self.land_index})?;
+        if land.get_token_count(TokenKind::Blight) > 1 {
+            game.do_effect(CascadeBlightDecision {src_land_index: self.land_index})?;
+        }
         
         Ok(())
     }
@@ -46,7 +47,7 @@ pub struct AddInvaderEffect {
 }
 
 impl Effect for AddInvaderEffect {
-    fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("adding invader {} {} to {}.", self.count, self.invader_kind, self.land_index));
 
         let land = game.map.lands.get_mut(self.land_index as usize).unwrap();

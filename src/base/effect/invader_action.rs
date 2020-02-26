@@ -11,7 +11,7 @@ pub struct ExploreEffect {
 }
 
 impl Effect for ExploreEffect {
-    fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Exploring in land {}.", self.land_index));
 
         let adj_lands = game.map.desc.lands_adjacent(self.land_index);
@@ -41,7 +41,7 @@ pub struct BuildEffect {
 }
 
 impl Effect for BuildEffect {
-    fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Building in land {}.", self.land_index));
 
         let land = game.map.lands.get(self.land_index as usize).unwrap();
@@ -76,7 +76,7 @@ pub struct RavageEffect {
 }
 
 impl Effect for RavageEffect {
-    fn apply_effect(&self, game: &mut GameState) -> Result<(), ()> {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Ravaging in land {}.", self.land_index));
 
         let land = game.map.lands.get_mut(self.land_index as usize).unwrap();
