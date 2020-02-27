@@ -15,15 +15,15 @@ impl Effect for ExploreEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Exploring in land {}.", self.land_index));
 
-        let adj_lands = game.map.desc.lands_adjacent(self.land_index);
+        let adj_lands = game.table.desc.lands_adjacent(self.land_index);
         let will_explore = adj_lands.iter().any(|l|
-            game.map.lands.get(l.index_in_map as usize).unwrap().invaders.iter().any(|i| i.is_building())
+            game.table.lands.get(l.index_in_map as usize).unwrap().invaders.iter().any(|i| i.is_building())
         );
 
         if will_explore {
             game.do_effect(AddInvaderEffect {
                 land_index: self.land_index,
-                invader_kind: InvaderKind::Explorer,
+                kind: InvaderKind::Explorer,
                 count: 1
             })?;
         }
@@ -31,12 +31,8 @@ impl Effect for ExploreEffect {
         Ok(())
     }
 
-    fn box_clone(&self) -> Box<dyn Effect> {
-        Box::new(self.clone())
-    }
-    fn as_any(&self) -> Box<dyn Any> {
-        Box::new(self.clone())
-    }
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
 }
 
 
@@ -49,7 +45,7 @@ impl Effect for BuildEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Building in land {}.", self.land_index));
 
-        let land = game.map.lands.get(self.land_index as usize).unwrap();
+        let land = game.table.lands.get(self.land_index as usize).unwrap();
 
         if land.invaders.len() != 0 {
             let building_type_distance : i8 = land.invaders.iter().map(|i|
@@ -61,7 +57,7 @@ impl Effect for BuildEffect {
 
             game.do_effect(AddInvaderEffect {
                 land_index: self.land_index,
-                invader_kind: if building_type_distance > 0 { InvaderKind::Town } else { InvaderKind::City },
+                kind: if building_type_distance >= 0 { InvaderKind::Town } else { InvaderKind::City },
                 count: 1
             })?;
         }
@@ -69,12 +65,8 @@ impl Effect for BuildEffect {
         Ok(())
     }
 
-    fn box_clone(&self) -> Box<dyn Effect> {
-        Box::new(self.clone())
-    }
-    fn as_any(&self) -> Box<dyn Any> {
-        Box::new(self.clone())
-    }
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
 }
 
 
@@ -87,7 +79,7 @@ impl Effect for RavageEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Ravaging in land {}.", self.land_index));
 
-        let land = game.map.lands.get_mut(self.land_index as usize).unwrap();
+        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
 
         if land.invaders.len() != 0 {
             // 1. Invaders to damage
@@ -100,10 +92,6 @@ impl Effect for RavageEffect {
         Ok(())
     }
 
-    fn box_clone(&self) -> Box<dyn Effect> {
-        Box::new(self.clone())
-    }
-    fn as_any(&self) -> Box<dyn Any> {
-        Box::new(self.clone())
-    }
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
 }

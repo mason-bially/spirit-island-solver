@@ -148,7 +148,7 @@ impl Invader {
 pub struct Dahan {
     pub health_max: u8,
     pub health_cur: u8,
-    pub attack: u8,
+    pub attack: u16,
 }
 
 impl Dahan {

@@ -3,8 +3,8 @@ use std::{
     any::Any
 };
 
-use super::{GameState, StepFailure, Effect, Decision, DecisionChoice};
-use super::{AddBlightEffect};
+use super::*;
+
 
 #[derive(Clone)]
 pub struct CascadeBlightDecision {
@@ -35,16 +35,10 @@ impl Effect for CascadeBlightDecision {
         Ok(())
     }
 
-    fn box_clone(&self) -> Box<dyn Effect> {
-        Box::new(self.clone())
-    }
-    fn as_any(&self) -> Box<dyn Any> {
-        Box::new(self.clone())
-    }
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
         
-    fn as_decision(&self) -> Option<Box<dyn Decision>> {
-        Some(Box::new(self.clone()))
-    }
+    fn as_decision(&self) -> Option<Box<dyn Decision>> { Some(Box::new(self.clone())) }
 }
 
 impl Decision for CascadeBlightDecision {

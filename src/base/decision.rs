@@ -7,12 +7,15 @@ pub trait Decision : Effect {
 
 #[derive(Clone)]
 pub enum DecisionChoice {
-    SequenceDecision(Vec<u8>),
+    Sequence(Vec<u8>),
+    Damage(Vec<u16>),
     TargetLand(u8),
     TargetPresence(u8),
 }
 
 mod cascade_blight;
+mod do_damage;
 
 pub use self::cascade_blight::{CascadeBlightDecision};
+pub use self::do_damage::{DoDamageToDahanEffect};
 

@@ -114,6 +114,9 @@ impl GameState {
     pub fn log(&self, s: String) {
         println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), s);
     }
+    pub fn log_subeffect(&self, s: String) {
+        println!("   |{}- {}", "  ".repeat(self.effect_stack.len() + 1), s);
+    }
 
     pub fn do_effect_box(&mut self, effect: Box<dyn Effect>) -> Result<(), StepFailure> {
         self.effect_stack.push(effect.box_clone());

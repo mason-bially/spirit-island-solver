@@ -38,12 +38,8 @@ impl Effect for AddBlightEffect {
         Ok(())
     }
 
-    fn box_clone(&self) -> Box<dyn Effect> {
-        Box::new(self.clone())
-    }
-    fn as_any(&self) -> Box<dyn Any> {
-        Box::new(self.clone())
-    }
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
 }
 
 
@@ -68,40 +64,57 @@ impl Effect for AddPresenceEffect {
         Ok(())
     }
 
-    fn box_clone(&self) -> Box<dyn Effect> {
-        Box::new(self.clone())
-    }
-    fn as_any(&self) -> Box<dyn Any> {
-        Box::new(self.clone())
-    }
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
 }
 
 
 #[derive(Clone)]
 pub struct AddInvaderEffect {
     pub land_index: u8,
-    pub invader_kind: InvaderKind,
+    pub kind: InvaderKind,
     pub count: u8,
 }
 
 impl Effect for AddInvaderEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log(format!("adding invader {} {} to {}.", self.count, self.invader_kind, self.land_index));
+        game.log(format!("adding {} {} invader(s) to {}.", self.count, self.kind, self.land_index));
 
         let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
 
         // 1. Add the invaders
         for _ in 0..self.count {
-            land.add_invader(self.invader_kind);
+            land.invaders.push(Invader::new(self.kind));
         }
         
         Ok(())
     }
 
-    fn box_clone(&self) -> Box<dyn Effect> {
-        Box::new(self.clone())
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
+}
+
+
+#[derive(Clone)]
+pub struct AddDahanEffect {
+    pub land_index: u8,
+    pub count: u8,
+}
+
+impl Effect for AddDahanEffect {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        game.log(format!("adding {} dahan to {}.", self.count, self.land_index));
+
+        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+
+        // 1. Add the invaders
+        for _ in 0..self.count {
+            land.dahan.push(Dahan::new());
+        }
+        
+        Ok(())
     }
-    fn as_any(&self) -> Box<dyn Any> {
-        Box::new(self.clone())
-    }
+
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
 }

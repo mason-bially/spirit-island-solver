@@ -26,10 +26,12 @@ mod do_damage;
 mod growth;
 mod invader_action;
 mod meta;
+mod remove_piece;
 
 pub use self::add_piece::{AddBlightEffect, AddPresenceEffect, AddInvaderEffect};
-pub use self::do_damage::{DoSpiritDamageEffect, DoInvaderDamageEffect};
+pub use self::do_damage::{DoDamageToLandEffect, DoInvaderDamageEffect};
 pub use self::growth::{};
 pub use self::invader_action::{ExploreEffect, BuildEffect, RavageEffect};
 pub use self::meta::{NotImplementedEffect};
+pub use self::remove_piece::{RemoveDahanEffect};
 

@@ -105,10 +105,6 @@ impl TableDescription {
 }
 
 impl LandState {
-    pub fn add_invader(&mut self, kind: InvaderKind) {
-        self.invaders.push(Invader::new(kind));
-    }
-
     pub fn time_passes(&mut self) {
         for invader in self.invaders.iter_mut() {
             invader.time_passes();
