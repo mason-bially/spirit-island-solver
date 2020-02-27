@@ -25,7 +25,7 @@ pub struct LandDescription {
 
     // -- Generated description elements --
 
-    pub index_in_map: u8,
+    pub index_on_table: u8,
     pub parent_board_index: u8,
 }
 
@@ -72,7 +72,7 @@ pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> 
         let mut board = search_for_board(content, board_name).unwrap();
         for land in board.lands.iter_mut() {
             let land_mut = Rc::get_mut(land).unwrap();
-            land_mut.index_in_map += land_count;
+            land_mut.index_on_table += land_count;
             land_mut.parent_board_index = board_count;
             
             lands.push(land.clone());

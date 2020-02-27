@@ -23,7 +23,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0),
             starting_dahan: 0,
 
-            index_in_map: 0,
+            index_on_table: 0,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -37,7 +37,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0),
             starting_dahan: 0,
 
-            index_in_map: 1,
+            index_on_table: 1,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -51,7 +51,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0).map(InvaderKind::City, 1),
             starting_dahan: 1,
 
-            index_in_map: 2,
+            index_on_table: 2,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -65,7 +65,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0),
             starting_dahan: 2,
 
-            index_in_map: 3,
+            index_on_table: 3,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -79,7 +79,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0),
             starting_dahan: 0,
 
-            index_in_map: 4,
+            index_on_table: 4,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -93,7 +93,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0),
             starting_dahan: 0,
 
-            index_in_map: 5,
+            index_on_table: 5,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -107,7 +107,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0),
             starting_dahan: 1,
 
-            index_in_map: 6,
+            index_on_table: 6,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -121,7 +121,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0),
             starting_dahan: 2,
 
-            index_in_map: 7,
+            index_on_table: 7,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -135,7 +135,7 @@ pub fn make_board_a() -> BoardDescription {
             starting_invaders: InvaderMap::new(|| 0).map(InvaderKind::Town, 1),
             starting_dahan: 0,
 
-            index_in_map: 8,
+            index_on_table: 8,
             parent_board_index: 0,
         }),
     ];

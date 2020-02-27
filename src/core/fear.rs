@@ -16,7 +16,10 @@ pub fn make_fear_cards() -> Vec<FearCardDescription> {
         },
         FearCardDescription {
             name: "Overseas Trade Seems Safer",
-            effect_1: Box::new(NotImplementedEffect { what: "Overseas Trade Seems Safer 1" }),
+            effect_1: Box::new(ForAllLandsDoEffect{
+                filter: |l| l.desc.is_coastal,
+                effect: |l| Box::new(PersistDefenseEffect{land_index: l.desc.index_on_table, defense: 3}),
+            }),
             effect_2: Box::new(NotImplementedEffect { what: "Overseas Trade Seems Safer 2" }),
             effect_3: Box::new(NotImplementedEffect { what: "Overseas Trade Seems Safer 3" }),
         },
@@ -28,7 +31,10 @@ pub fn make_fear_cards() -> Vec<FearCardDescription> {
         },
         FearCardDescription {
             name: "Belief Takes Root",
-            effect_1: Box::new(NotImplementedEffect { what: "Belief Takes Root 1" }),
+            effect_1: Box::new(ForAllLandsDoEffect{
+                filter: |l| l.presence.0.iter().any(|p| *p != 0),
+                effect: |l| Box::new(PersistDefenseEffect{land_index: l.desc.index_on_table, defense: 2}),
+            }),
             effect_2: Box::new(NotImplementedEffect { what: "Belief Takes Root 2" }),
             effect_3: Box::new(NotImplementedEffect { what: "Belief Takes Root 3" }),
         },
@@ -76,9 +82,18 @@ pub fn make_fear_cards() -> Vec<FearCardDescription> {
         },
         FearCardDescription {
             name: "Dahan on their Guard",
-            effect_1: Box::new(NotImplementedEffect { what: "Dahan on their Guard 1" }),
-            effect_2: Box::new(NotImplementedEffect { what: "Dahan on their Guard 2" }),
-            effect_3: Box::new(NotImplementedEffect { what: "Dahan on their Guard 3" }),
+            effect_1: Box::new(ForAllLandsDoEffect{
+                filter: |l| l.dahan.len() != 0, // optimization...
+                effect: |l| Box::new(PersistDefenseEffect{land_index: l.desc.index_on_table, defense: l.dahan.len() as u16}),
+            }),
+            effect_2: Box::new(ForAllLandsDoEffect{
+                filter: |l| l.dahan.len() != 0, // optimization...
+                effect: |l| Box::new(PersistDefenseEffect{land_index: l.desc.index_on_table, defense: 1 + l.dahan.len() as u16}),
+            }),
+            effect_3: Box::new(ForAllLandsDoEffect{
+                filter: |l| l.dahan.len() != 0, // optimization...
+                effect: |l| Box::new(PersistDefenseEffect{land_index: l.desc.index_on_table, defense: 2 * l.dahan.len() as u16}),
+            }),
         },
         FearCardDescription {
             name: "Emigration Accelerates",

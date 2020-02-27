@@ -216,6 +216,7 @@ impl GameState {
                 self.invader.shuffle_draw(&mut self.rng.get_rng());
 
                 self.fear.init(&desc.fear, &mut self.rng.get_rng(), desc.adversary.fear_cards());
+                self.fear_pool = 4 * desc.spirits.len() as u8;
 
                 desc.adversary.setup(self);
 
@@ -238,7 +239,7 @@ impl GameState {
 
                 let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
                 for land in lands {
-                    self.do_effect(ExploreEffect { land_index: land.index_in_map })?;
+                    self.do_effect(ExploreEffect { land_index: land.index_on_table })?;
                 }
 
                 self.invader.advance();
@@ -299,17 +300,17 @@ impl GameState {
                                 match &inv_kind {
                                     InvaderActionKind::Explore => {
                                         for land in lands {
-                                            self.do_effect(ExploreEffect { land_index: land.index_in_map })?;
+                                            self.do_effect(ExploreEffect { land_index: land.index_on_table })?;
                                         }
                                     }
                                     InvaderActionKind::Build => {
                                         for land in lands {
-                                            self.do_effect(BuildEffect { land_index: land.index_in_map })?;
+                                            self.do_effect(BuildEffect { land_index: land.index_on_table })?;
                                         }
                                     }
                                     InvaderActionKind::Ravage => {
                                         for land in lands {
-                                            self.do_effect(RavageEffect { land_index: land.index_in_map })?;
+                                            self.do_effect(RavageEffect { land_index: land.index_on_table })?;
                                         }
                                     }
                                 }

@@ -9,7 +9,8 @@ use super::*;
 
 
 pub fn allocate_efficent_damage(damage: u16, targets: Vec<u8>) -> Vec<u16> {
-    let enumerated: Vec<(usize, &u8)> = targets.iter().enumerate().collect();
+    let mut enumerated: Vec<(usize, &u8)> = targets.iter().enumerate().collect();
+    enumerated.sort_by(|a, b| a.cmp(b));
 
     let mut res = Vec::<u16>::new();
     res.resize(targets.len(), 0);
@@ -192,7 +193,7 @@ impl Effect for DoDamageToInvadersDecision {
 impl Decision for DoDamageToInvadersDecision {
     fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
         vec![
-            // TODO, this is probably the best choice:
+            // TODO, kinda a good choice
             DecisionChoice::Damage(allocate_efficent_damage(self.damage, game.table.lands.get(self.land_index as usize).unwrap().invaders.iter().map(|d| d.health_cur).collect()))
         ]
     }

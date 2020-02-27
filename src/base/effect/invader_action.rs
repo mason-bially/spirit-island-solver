@@ -17,7 +17,7 @@ impl Effect for ExploreEffect {
 
         let adj_lands = game.table.desc.lands_adjacent(self.land_index);
         let will_explore = adj_lands.iter().any(|l|
-            game.table.lands.get(l.index_in_map as usize).unwrap().invaders.iter().any(|i| i.is_building())
+            game.table.lands.get(l.index_on_table as usize).unwrap().invaders.iter().any(|i| i.is_building())
         );
 
         if will_explore {

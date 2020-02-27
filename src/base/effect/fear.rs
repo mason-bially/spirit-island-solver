@@ -22,10 +22,13 @@ impl Effect for GenerateFearEffect {
         while remaining_fear > 0 {
             let fear_to_move = min(self.fear, game.fear_pool);
 
-            game.fear_generated -= fear_to_move;
+            game.fear_generated += fear_to_move;
+            game.fear_pool -= fear_to_move;
             remaining_fear -= fear_to_move;
 
             if game.fear_pool == 0 {
+                game.log_subeffect("drawing a fear card!".to_string());
+
                 game.fear.draw_into_pending();
                 game.fear_pool = game.fear_generated;
                 game.fear_generated = 0;
