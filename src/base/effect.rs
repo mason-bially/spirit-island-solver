@@ -1,4 +1,5 @@
 use std::{
+    any::Any,
     iter::*,
 };
 
@@ -6,7 +7,9 @@ use super::*;
 
 pub trait Effect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure>;
+
     fn box_clone(&self) -> Box<dyn Effect>;
+    fn as_any(&self) -> Box<dyn Any>;
 
     fn is_decision(&self) -> bool {
         false

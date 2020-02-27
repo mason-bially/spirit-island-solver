@@ -1,4 +1,5 @@
 use std::{
+    any::Any,
     iter::*,
 };
 
@@ -49,7 +50,12 @@ impl Effect for DoInvaderDamageEffect {
 
         Ok(())
     }
+
     fn box_clone(&self) -> Box<dyn Effect> {
+        Box::new(self.clone())
+    }
+
+    fn as_any(&self) -> Box<dyn Any> {
         Box::new(self.clone())
     }
 }

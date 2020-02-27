@@ -10,7 +10,7 @@ pub trait Decision : Effect {
         true
     }
 
-    fn as_any(&self) -> Box<dyn Any>;
+    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice>;
 }
 
 #[derive(Clone)]
