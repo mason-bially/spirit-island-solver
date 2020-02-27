@@ -20,7 +20,6 @@ impl Effect for CascadeBlightDecision {
         }?;
 
         let src_land_desc = game.desc.map.lands.get(self.src_land_index as usize).unwrap();
-        let dst_land = game.desc.map.lands.get(dst_land_index as usize).unwrap();
 
         if !src_land_desc.adjacent.contains(&dst_land_index) {
             return Err(StepFailure::RulesViolation("Cascade Blight: Destination land is not adjacent to source land!".to_string()))

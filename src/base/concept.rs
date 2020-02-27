@@ -1,11 +1,13 @@
 
 use std::{
     fmt,
+    iter::*,
 };
 
 use super::board::{BoardDescription};
 use super::step::{StepFailure};
 use super::game::{GameState};
+use super::deck::{FearCardDescription};
 
 #[derive(Copy, Clone)]
 pub enum InvaderActionKind {
@@ -45,6 +47,24 @@ impl fmt::Display for LandKind {
     }
 }
 
+#[derive(Copy, Clone)]
+pub enum TerrorLevel {
+    I,
+    II,
+    III
+}
+
+impl fmt::Display for TerrorLevel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &*self {
+            TerrorLevel::I => write!(f, "Terror I"),
+            TerrorLevel::II => write!(f, "Terror II"),
+            TerrorLevel::III => write!(f, "Terror III"),
+       }
+    }
+}
+
+
 pub trait SpiritDescription {
     fn name(&self) -> &'static str;
     fn all_names(&self) -> &'static [&'static str];
@@ -70,6 +90,8 @@ pub trait AdversaryDescription {
 pub trait ContentPack {
     fn get_spirits(&self) -> Vec<Box<dyn SpiritDescription>>;
     fn get_boards(&self) -> Vec<BoardDescription>;
+
+    fn get_fear_cards(&self) -> Vec<Box<dyn FearCardDescription>>;
 }
 
 
@@ -99,5 +121,15 @@ pub fn search_for_board(content: &Vec<Box<dyn ContentPack>>, name: &str) -> Opti
     }
 
     None
+}
+
+pub fn join_fear_cards(content: &Vec<Box<dyn ContentPack>>) -> Vec<Box<dyn FearCardDescription>>
+{
+    let mut result = Vec::new();
+    for c in content.iter() {
+        result.extend(c.get_fear_cards());
+    }
+    
+    result
 }
 

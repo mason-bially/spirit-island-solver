@@ -11,7 +11,6 @@ use rand::prelude::*;
 
 use crate::base::{
     concept::{LandKind, InvaderActionKind},
-    deck::{Deck},
     board::{LandDescription},
 };
 
@@ -102,21 +101,7 @@ impl InvaderDeck {
         for _step in self.sequence.iter() { self.pending.push_back(Vec::new()); }
     }
 
-    pub fn draw_into_pending(&mut self) {
-        let draw = self.draw(1);
-        let card = draw.first().unwrap();
-
-        self.pending.back_mut().unwrap().push(*card);
-    }
-
-    pub fn advance(&mut self) {
-        self.discard.append(&mut self.pending.pop_front().unwrap());
-        self.pending.push_back(Vec::new());
-    }
-}
-
-impl Deck<InvaderCard> for InvaderDeck {
-    fn shuffle_draw(&mut self, mut rng: &mut dyn RngCore) {
+    pub fn shuffle_draw(&mut self, mut rng: &mut dyn RngCore) {
         // have to shuffle specific parts
         let partition2 = self.draw.iter().position(|&x| if let InvaderCard::Phase2(_) = x { true } else { false }).unwrap();
         let partition1 = self.draw.iter().position(|&x| if let InvaderCard::Phase1(_) = x { true } else { false }).unwrap();
@@ -128,12 +113,24 @@ impl Deck<InvaderCard> for InvaderDeck {
         self.draw[partition1..15].shuffle(&mut rng);
     }
 
-    fn draw(&mut self, count: usize) -> Vec<InvaderCard> {
+    pub fn draw(&mut self, count: usize) -> Vec<InvaderCard> {
         let mut res = Vec::new();
         for _ in 0..count {
             res.insert(0, self.draw.pop().unwrap());
         }
 
         res
+    }
+
+    pub fn draw_into_pending(&mut self) {
+        let draw = self.draw(1);
+        let card = draw.first().unwrap();
+
+        self.pending.back_mut().unwrap().push(*card);
+    }
+
+    pub fn advance(&mut self) {
+        self.discard.append(&mut self.pending.pop_front().unwrap());
+        self.pending.push_back(Vec::new());
     }
 }

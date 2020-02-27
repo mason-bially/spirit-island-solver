@@ -14,6 +14,8 @@ pub struct GameDescription {
     pub adversary: Box<dyn AdversaryDescription>,
     pub spirits: Vec<Box<dyn SpiritDescription>>,
     pub map: Rc<MapDescription>,
+
+    pub fear: Rc<Vec<Box<dyn FearCardDescription>>>,
 }
 
 impl GameDescription {
@@ -23,11 +25,15 @@ impl GameDescription {
         spirits: Vec<Box<dyn SpiritDescription>>,
         map: Box<MapDescription>,
     ) -> GameDescription {
+        let fear_cards = join_fear_cards(&content);
+
         GameDescription {
             content,
             adversary,
             spirits,
-            map: Rc::from(map)
+            map: Rc::from(map),
+
+            fear: Rc::from(fear_cards),
         }
     }
 }
@@ -70,7 +76,7 @@ pub struct GameState {
 impl GameState {
     pub fn new(desc: Rc<GameDescription>, rng: Box<dyn DeterministicRng>) -> GameState {
         GameState {
-            desc: desc.clone(),
+            desc: Rc::clone(&desc),
             rng,
 
             step: GameStep::Init,
@@ -84,7 +90,7 @@ impl GameState {
 
             invader: InvaderDeck::new(),
 
-            fear: FearDeck::new(),
+            fear: FearDeck::new(desc.fear.clone()),
             fear_pool: 0,
             fear_generated: 0,
 
@@ -201,6 +207,8 @@ impl GameState {
                 let invaders = generate_invader_deck();
                 self.invader.set_state(invaders, Vec::new(), self.desc.adversary.invader_steps());
                 self.invader.shuffle_draw(&mut self.rng.get_rng());
+
+                //self.fear.init(&mut self.rng.get_rng(), desc.adversary.fear_cards());
 
                 desc.adversary.setup(self);
 
