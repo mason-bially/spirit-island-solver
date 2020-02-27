@@ -13,11 +13,12 @@ pub struct CascadeBlightDecision {
 
 impl Effect for CascadeBlightDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        let dst_land_index = match game.consume_choice()?
-        {
-            DecisionChoice::TargetLand(land) => Ok(land),
-            _ => Err(StepFailure::DecisionMismatch),
-        }?;
+        let dst_land_index
+            = match game.consume_choice()?
+            {
+                DecisionChoice::TargetLand(land) => Ok(land),
+                _ => Err(StepFailure::DecisionMismatch),
+            }?;
 
         let src_land_desc = game.desc.table.lands.get(self.src_land_index as usize).unwrap();
 

@@ -17,5 +17,5 @@ mod cascade_blight;
 mod do_damage;
 
 pub use self::cascade_blight::{CascadeBlightDecision};
-pub use self::do_damage::{DoDamageToDahanEffect};
+pub use self::do_damage::{DoDamageToDahanDecision, DoDamageToInvadersDecision};
 

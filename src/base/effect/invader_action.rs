@@ -83,10 +83,10 @@ impl Effect for RavageEffect {
 
         if land.invaders.len() != 0 {
             // 1. Invaders to damage
-            game.do_effect(DoInvaderDamageEffect { land_index: self.land_index, count: 1 })?;
+            game.do_effect(DoInvaderAttackEffect { land_index: self.land_index })?;
 
             // 2. Dahan counter attack
-
+            game.do_effect(DoDahanAttackEffect { land_index: self.land_index })?;
         }
 
         Ok(())

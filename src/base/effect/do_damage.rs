@@ -34,16 +34,19 @@ impl Effect for DoDamageToLandEffect {
 
 
 #[derive(Clone)]
-pub struct DoInvaderDamageEffect {
+pub struct DoInvaderAttackEffect {
     pub land_index: u8,
-    pub count: u16,
 }
 
-impl Effect for DoInvaderDamageEffect {
+impl Effect for DoInvaderAttackEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log(format!("invader damage in {}.", self.land_index));
+        let land = &game.table.lands[self.land_index as usize];
+        if land.invaders.len() == 0 {
+            return Ok(());
+        }
 
-        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+        game.log(format!("invaders attack in {}.", self.land_index));
+
         let mut invader_damage: u16 = land.invaders.iter().map(|p| p.attack).sum();
 
         // TODO intercept and modify this damage:
@@ -61,10 +64,37 @@ impl Effect for DoInvaderDamageEffect {
 
         // 2.Damage is done in two steps, one to the land and one to the dahan
         // 2a. Damage to dahan
-        game.do_effect(DoDamageToDahanEffect{land_index: self.land_index, damage: invader_damage, efficent: true})?;
+        game.do_effect(DoDamageToDahanDecision{land_index: self.land_index, damage: invader_damage, efficent: true})?;
 
         // 2b. Damage to land
         game.do_effect(DoDamageToLandEffect{land_index: self.land_index, damage: invader_damage})?;
+
+        Ok(())
+    }
+
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
+}
+
+
+#[derive(Clone)]
+pub struct DoDahanAttackEffect {
+    pub land_index: u8,
+}
+
+impl Effect for DoDahanAttackEffect {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        let land = &game.table.lands[self.land_index as usize];
+        if land.dahan.len() == 0 {
+            return Ok(());
+        }
+
+        game.log(format!("dahan attack in {}.", self.land_index));
+
+        let dahan_damage: u16 = land.dahan.iter().map(|p| p.attack).sum();
+
+        // 1. Do the damage
+        game.do_effect(DoDamageToInvadersDecision{land_index: self.land_index, damage: dahan_damage})?;
 
         Ok(())
     }
