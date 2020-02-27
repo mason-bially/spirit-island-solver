@@ -34,7 +34,7 @@ pub struct BoardDescription {
     pub lands: Vec<Rc<LandDescription>>,
 }
 
-pub struct MapDescription {
+pub struct TableDescription {
     pub boards: Vec<BoardDescription>,
     pub lands: Vec<Rc<LandDescription>>,
     pub land_count: u8,
@@ -51,16 +51,18 @@ pub struct LandState {
 
     pub invaders: Vec<Invader>,
     pub dahan: Vec<Dahan>,
+
+    pub defense: u16,
 }
 
 #[derive(Clone)]
-pub struct MapState {
-    pub desc: Rc<MapDescription>,
+pub struct TableState {
+    pub desc: Rc<TableDescription>,
 
     pub lands: Vec<LandState>,
 }
 
-pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> MapDescription {
+pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> TableDescription {
     let mut boards = Vec::new();
     let mut lands = Vec::new();
     let mut land_count = 0;
@@ -82,7 +84,7 @@ pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> 
         board_count += 1;
     }
 
-    MapDescription {
+    TableDescription {
         boards,
         lands,
         land_count
@@ -90,7 +92,7 @@ pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> 
 }
 
 
-impl MapDescription {
+impl TableDescription {
     pub fn get_land(&self, index: u8) -> Rc<LandDescription> {
         self.lands.get(index as usize).unwrap().clone()
     }
@@ -106,10 +108,21 @@ impl LandState {
     pub fn add_invader(&mut self, kind: InvaderKind) {
         self.invaders.push(Invader::new(kind));
     }
+
+    pub fn time_passes(&mut self) {
+        for invader in self.invaders.iter_mut() {
+            invader.time_passes();
+        }
+        for dahan in self.dahan.iter_mut() {
+            dahan.time_passes();
+        }
+
+        self.defense = 0;
+    }
 }
 
-impl MapState {
-    pub fn new(desc: Rc<MapDescription>) -> MapState {
+impl TableState {
+    pub fn new(desc: Rc<TableDescription>) -> TableState {
         let mut lands = Vec::new();
 
         for board in desc.boards.iter() {
@@ -127,11 +140,13 @@ impl MapState {
                         .chain(repeat(Invader::new(InvaderKind::City)).take(land.starting_invaders[InvaderKind::City] as usize))
                         .collect(),
                     dahan: repeat(Dahan::new()).take(land.starting_dahan as usize).collect(),
+
+                    defense: 0,
                 });
             }
         }
 
-        MapState {
+        TableState {
             desc,
             lands,
         }

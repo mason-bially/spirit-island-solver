@@ -136,6 +136,12 @@ impl Invader {
     pub fn is_building(&self) -> bool {
         self.kind.is_building()
     }
+
+    pub fn time_passes(&mut self) {
+        self.health_max = self.kind.health();
+        self.health_cur = self.health_max;
+        self.attack = self.kind.attack();
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -152,6 +158,12 @@ impl Dahan {
             health_cur: 2,
             attack: 2,
         }
+    }
+
+    pub fn time_passes(&mut self) {
+        self.health_max = 2;
+        self.health_cur = self.health_max;
+        self.attack = 2;
     }
 }
 

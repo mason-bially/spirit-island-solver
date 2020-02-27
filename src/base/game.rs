@@ -13,7 +13,7 @@ pub struct GameDescription {
     pub content: Vec<Box<dyn ContentPack>>,
     pub adversary: Box<dyn AdversaryDescription>,
     pub spirits: Vec<Box<dyn SpiritDescription>>,
-    pub map: Rc<MapDescription>,
+    pub table: Rc<TableDescription>,
 
     pub fear: Rc<Vec<FearCardDescription>>,
 }
@@ -23,7 +23,7 @@ impl GameDescription {
         content: Vec<Box<dyn ContentPack>>,
         adversary: Box<dyn AdversaryDescription>,
         spirits: Vec<Box<dyn SpiritDescription>>,
-        map: Box<MapDescription>,
+        table: Box<TableDescription>,
     ) -> GameDescription {
         let fear_cards = join_fear_cards(&content);
 
@@ -31,7 +31,7 @@ impl GameDescription {
             content,
             adversary,
             spirits,
-            map: Rc::from(map),
+            table: Rc::from(table),
 
             fear: Rc::from(fear_cards),
         }
@@ -53,7 +53,7 @@ pub struct GameState {
     pub choices: VecDeque<DecisionChoice>,
     pub effect_stack: Vec<Box<dyn Effect>>,
 
-    pub map: MapState,
+    pub table: TableState,
 
     pub invader: InvaderDeck,
     
@@ -86,7 +86,7 @@ impl GameState {
             choices: VecDeque::new(),
             effect_stack: Vec::new(),
 
-            map: MapState::new(desc.map.clone()),
+            table: TableState::new(desc.table.clone()),
 
             invader: InvaderDeck::new(),
 
@@ -124,11 +124,7 @@ impl GameState {
     }
 
     pub fn do_effect<T : Effect>(&mut self, effect: T) -> Result<(), StepFailure> {
-        self.effect_stack.push(effect.box_clone());
-        let res = effect.apply_effect(self)?;
-        self.effect_stack.pop();
-
-        Ok(res)
+        self.do_effect_box(effect.box_clone())
     }
 
     pub fn consume_choice(&mut self) -> Result<DecisionChoice, StepFailure> {
@@ -237,14 +233,14 @@ impl GameState {
                 let &card = self.invader.pending.back().unwrap().first().unwrap();
                 self.log(format!("Invader Action Card: {}", card));
 
-                let lands = desc.map.lands.iter().filter(|l| card.can_target(l));
+                let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
                 for land in lands {
                     self.do_effect(ExploreEffect { land_index: land.index_in_map })?;
                 }
 
                 self.invader.advance();
 
-                // TODO: Post explore adversary setup?
+                // TODO: Post setup-explore adversary setup?
 
                 GameStep::Turn(0, TurnStep::Spirit)
             }
@@ -294,7 +290,7 @@ impl GameState {
                                     .get(*inv_card as usize).unwrap();
 
                                 // TODO: Technically the order here is a decision...
-                                let lands = desc.map.lands.iter().filter(|l| card.can_target(l));
+                                let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
 
                                 self.log(format!("Invader Action Card: {}", card));
                                 match &inv_kind {
@@ -329,6 +325,9 @@ impl GameState {
                         GameStep::Turn(turn, TurnStep::TimePasses)
                     }
                     TurnStep::TimePasses => {
+                        for land in self.table.lands.iter_mut() {
+                            land.time_passes();
+                        }
 
                         GameStep::Turn(turn + 1, TurnStep::Spirit)
                     }

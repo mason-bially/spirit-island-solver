@@ -19,12 +19,12 @@ impl Effect for CascadeBlightDecision {
             _ => Err(StepFailure::DecisionMismatch),
         }?;
 
-        let src_land_desc = game.desc.map.lands.get(self.src_land_index as usize).unwrap();
+        let src_land_desc = game.desc.table.lands.get(self.src_land_index as usize).unwrap();
 
         if !src_land_desc.adjacent.contains(&dst_land_index) {
             return Err(StepFailure::RulesViolation("Cascade Blight: Destination land is not adjacent to source land!".to_string()))
         }
-        if !game.map.lands.get(dst_land_index as usize).unwrap().is_in_play {
+        if !game.table.lands.get(dst_land_index as usize).unwrap().is_in_play {
             return Err(StepFailure::RulesViolation("Cascade Blight: Blight must be placed on lands that are in play!".to_string()))
         }
 
@@ -49,10 +49,10 @@ impl Effect for CascadeBlightDecision {
 
 impl Decision for CascadeBlightDecision {
     fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
-        game.desc.map.lands
+        game.desc.table.lands
             .get(self.src_land_index as usize).unwrap()
             .adjacent.iter()
-                .filter(|l| game.map.lands.get(**l as usize).unwrap().is_in_play)
+                .filter(|l| game.table.lands.get(**l as usize).unwrap().is_in_play)
                 .map(|l| DecisionChoice::TargetLand(*l))
                 .collect()
     }

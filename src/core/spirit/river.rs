@@ -17,7 +17,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
 
     fn do_setup(&self, game: &mut GameState, si: usize) -> Result<(), StepFailure> {
         // River puts 1 in the highest wetland
-        let land_index = game.desc.map.boards[si]
+        let land_index = game.desc.table.boards[si]
             .lands.iter()
             .filter(|l| l.kind == LandKind::Wetlands)
             // boards are sorted lowest to highest by default
