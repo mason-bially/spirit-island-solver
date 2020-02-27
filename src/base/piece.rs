@@ -64,7 +64,7 @@ impl fmt::Display for InvaderKind {
 pub enum Piece {
     Token {kind: TokenKind, count: u8},
     Scenario {index: u8},
-    Presence {index: u8, count: u8},
+    Presence {spirit: u8, count: u8},
     Dahan {health: u8},
     Invader {kind: InvaderKind, health: u8},
 }

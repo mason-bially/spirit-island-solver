@@ -11,8 +11,8 @@ pub trait Effect {
     fn box_clone(&self) -> Box<dyn Effect>;
     fn as_any(&self) -> Box<dyn Any>;
 
-    fn is_decision(&self) -> bool {
-        false
+    fn as_decision(&self) -> Option<Box<dyn Decision>> {
+        None
     }
 }
 
@@ -24,9 +24,11 @@ impl Clone for Box<dyn Effect> {
 
 mod add_piece;
 mod do_damage;
+mod growth;
 mod invader_action;
 
-pub use self::add_piece::{AddBlightEffect, AddInvaderEffect};
+pub use self::add_piece::{AddBlightEffect, AddPresenceEffect, AddInvaderEffect};
 pub use self::do_damage::{DoSpiritDamageEffect, DoInvaderDamageEffect};
+pub use self::growth::{};
 pub use self::invader_action::{ExploreEffect, BuildEffect, RavageEffect};
 

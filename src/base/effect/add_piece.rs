@@ -41,7 +41,36 @@ impl Effect for AddBlightEffect {
     fn box_clone(&self) -> Box<dyn Effect> {
         Box::new(self.clone())
     }
+    fn as_any(&self) -> Box<dyn Any> {
+        Box::new(self.clone())
+    }
+}
 
+
+#[derive(Clone)]
+pub struct AddPresenceEffect {
+    pub land_index: u8,
+    pub spirit: u8,
+    pub count: u8,
+}
+
+impl Effect for AddPresenceEffect {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        game.log(format!("adding presence to land {} for {}.", self.land_index, self.spirit));
+
+        // Pre: presence has already been "picked up" for this effect.
+        //   this is just about actually adding it to the board.
+
+        // 1. Add presence to the land
+        let land = game.map.lands.get_mut(self.land_index as usize).unwrap();
+        land.add_presence(self.spirit, self.count);
+        
+        Ok(())
+    }
+
+    fn box_clone(&self) -> Box<dyn Effect> {
+        Box::new(self.clone())
+    }
     fn as_any(&self) -> Box<dyn Any> {
         Box::new(self.clone())
     }
@@ -72,7 +101,6 @@ impl Effect for AddInvaderEffect {
     fn box_clone(&self) -> Box<dyn Effect> {
         Box::new(self.clone())
     }
-
     fn as_any(&self) -> Box<dyn Any> {
         Box::new(self.clone())
     }

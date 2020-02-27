@@ -57,6 +57,7 @@ pub struct MapDescription {
 #[derive(Clone)]
 pub struct LandState {
     pub desc: Rc<LandDescription>,
+    pub is_in_play: bool,
     pub pieces: Vec<Piece>,
 }
 
@@ -118,7 +119,7 @@ impl LandState {
         if let Some(Piece::Token{count, ..}) = entry {
             *count += amount;
         } else {
-            self.pieces.push(Piece::Token{kind: kind, count: amount});
+            self.pieces.push(Piece::Token{kind, count: amount});
         }
     }
 
@@ -131,6 +132,19 @@ impl LandState {
         match entry {
             Some(Piece::Token {count, ..}) => *count,
             _ => 0
+        }
+    }
+
+    pub fn add_presence(&mut self, spirit: u8, amount: u8) {
+        let entry = self.pieces.iter_mut().find(|piece| match piece {
+            Piece::Presence{spirit: pspirit, ..} => *pspirit == spirit,
+            _ => false
+        });
+
+        if let Some(Piece::Presence{count, ..}) = entry {
+            *count += amount;
+        } else {
+            self.pieces.push(Piece::Presence{spirit, count: amount});
         }
     }
 
@@ -147,6 +161,7 @@ impl MapState {
             for land in board.lands.iter() {
                 lands.push(LandState {
                     desc: land.clone(),
+                    is_in_play: land.board_index != 0,
                     pieces: land.starting_pieces.clone(),
                 });
             }

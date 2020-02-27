@@ -72,10 +72,10 @@ impl SimpleDecisionMaker {
 impl DecisionMaker for SimpleDecisionMaker {
     fn decide(&self, state: &GameState) -> DecisionChoice {
         let undecided_decision = state.effect_stack.last().unwrap();
-        if !undecided_decision.is_decision() {
-            panic!();
-        }
+        let decision = undecided_decision.as_decision().unwrap();
 
-        let choices = undecided_decision.as_any().downcast_ref::<dyn Decision>();
+        let choices = decision.valid_choices(state);
+
+        choices.first().unwrap().clone()
     }
 }

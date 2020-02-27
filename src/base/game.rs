@@ -393,6 +393,10 @@ impl GameState {
                 GameStep::SetupSpirit
             }
             GameStep::SetupSpirit => {
+                for (index, spirit) in desc.spirits.iter().enumerate() {
+                    self.log(format!("Setting up spirit {} ({})", spirit.name(), index));
+                    spirit.do_setup(self, index);
+                }
 
                 GameStep::SetupExplore
             }

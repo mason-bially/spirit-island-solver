@@ -6,10 +6,6 @@ use std::{
 use super::*;
 
 pub trait Decision : Effect {
-    fn is_decision(&self) -> bool {
-        true
-    }
-
     fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice>;
 }
 

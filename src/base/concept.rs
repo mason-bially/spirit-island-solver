@@ -1,6 +1,6 @@
 use super::board::{BoardDescription};
 use super::step::{GameStep};
-use super::game::{GameState};
+use super::game::{GameState, StepFailure};
 
 #[derive(Copy, Clone)]
 pub enum InvaderActionKind {
@@ -13,8 +13,7 @@ pub trait SpiritDescription {
     fn name(&self) -> &'static str;
     fn all_names(&self) -> &'static [&'static str];
 
-    fn do_reset(&mut self, game: &mut GameState);
-    fn do_setup(&mut self, game: &mut GameState);
+    fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 }
 
 pub trait Power {
