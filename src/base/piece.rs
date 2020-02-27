@@ -4,7 +4,7 @@ use std::{
     fmt,
 };
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum TokenKind {
     Blight,
     Beast,
@@ -14,7 +14,36 @@ pub enum TokenKind {
     Badlands,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone)]
+pub struct TokenMap<T>( [T; 6] );
+
+impl<T> TokenMap<T> {
+    pub fn new<F>(v: F) -> TokenMap<T>
+        where F: Fn() -> T
+    {
+        TokenMap( [v(),v(),v(),v(),v(),v()] )
+    }
+
+    pub fn map(mut self, kind: TokenKind, value: T) -> Self {
+        self[kind] = value;
+        self
+    }
+}
+
+impl<T> std::ops::Index<TokenKind> for TokenMap<T>  {
+    type Output = T;
+    fn index(&self, s: TokenKind) -> &T {
+        &self.0[s as usize]
+    }
+}
+impl<T> std::ops::IndexMut<TokenKind> for TokenMap<T>  {
+    fn index_mut(&mut self, s: TokenKind) -> &mut T {
+        &mut self.0[s as usize]
+    }
+}
+
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum InvaderKind {
     Explorer,
     Town,
@@ -22,7 +51,7 @@ pub enum InvaderKind {
 }
 
 impl InvaderKind {
-    pub fn damage(&self) -> u16 {
+    pub fn attack(&self) -> u16 {
         match *self {
             InvaderKind::Explorer => 1,
             InvaderKind::Town => 2,
@@ -56,63 +85,96 @@ impl fmt::Display for InvaderKind {
     }
 }
 
-
 #[derive(Copy, Clone)]
-pub enum Piece {
-    Token {kind: TokenKind, count: u8},
-    Scenario {index: u8},
-    Presence {spirit: u8, count: u8},
-    Dahan {health: u8},
-    Invader {kind: InvaderKind, health: u8},
+pub struct InvaderMap<T>( [T; 3] );
+
+impl<T> InvaderMap<T> {
+    pub fn new<F>(v: F) -> InvaderMap<T>
+        where F: Fn() -> T
+    {
+        InvaderMap( [v(),v(),v()] )
+    }
+
+    pub fn map(mut self, kind: InvaderKind, value: T) -> Self {
+        self[kind] = value;
+        self
+    }
 }
 
-impl Piece {
-    pub fn is_invader(&self) -> bool {
-        match *self {
-            Piece::Invader { .. } => true,
-            _ => false,
+impl<T> std::ops::Index<InvaderKind> for InvaderMap<T>  {
+    type Output = T;
+    fn index(&self, s: InvaderKind) -> &T {
+        &self.0[s as usize]
+    }
+}
+impl<T> std::ops::IndexMut<InvaderKind> for InvaderMap<T>  {
+    fn index_mut(&mut self, s: InvaderKind) -> &mut T {
+        &mut self.0[s as usize]
+    }
+}
+
+
+#[derive(Copy, Clone)]
+pub struct Invader {
+    pub kind: InvaderKind,
+    pub health_max: u8,
+    pub health_cur: u8,
+    pub attack: u16,
+}
+
+impl Invader {
+    pub fn new(kind: InvaderKind) -> Invader {
+        Invader {
+            kind,
+
+            health_max: kind.health(),
+            health_cur: kind.health(),
+            attack: kind.attack(),
         }
     }
 
     pub fn is_building(&self) -> bool {
-        match *self {
-            Piece::Invader { kind, .. } => kind.is_building(),
-            _ => false,
+        self.kind.is_building()
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Dahan {
+    pub health_max: u8,
+    pub health_cur: u8,
+    pub attack: u8,
+}
+
+impl Dahan {
+    pub fn new() -> Dahan {
+        Dahan {
+            health_max: 2,
+            health_cur: 2,
+            attack: 2,
         }
     }
+}
 
-    pub fn is_explorer(&self) -> bool {
-        match *self {
-            Piece::Invader { kind: InvaderKind::Explorer, .. } => true,
-            _ => false,
-        }
+
+#[derive(Copy, Clone)]
+pub struct SpiritMap<T>( [T; 6] );
+
+impl<T> SpiritMap<T> {
+    pub fn new<F>(v: F) -> SpiritMap<T>
+        where F: Fn() -> T
+    {
+        SpiritMap( [v(),v(),v(),v(),v(),v()] )
     }
+}
 
-    pub fn is_town(&self) -> bool {
-        match *self {
-            Piece::Invader { kind: InvaderKind::Town, .. } => true,
-            _ => false,
-        }
+impl<T> std::ops::Index<u8> for SpiritMap<T>  {
+    type Output = T;
+    fn index(&self, s: u8) -> &T {
+        &self.0[s as usize]
     }
-
-    pub fn is_city(&self) -> bool {
-        match *self {
-            Piece::Invader { kind: InvaderKind::City, .. } => true,
-            _ => false,
-        }
-    }
-
-    pub fn invader_damage(&self) -> u16 {
-        match *self {
-            Piece::Invader { kind, .. } => kind.damage(),
-            _ => 0,
-        }
-    }
-
-    pub fn invader_health(&self) -> u8 {
-        match *self {
-            Piece::Invader { kind, .. } => kind.health(),
-            _ => 0,
-        }
+}
+impl<T> std::ops::IndexMut<u8> for SpiritMap<T>  {
+    fn index_mut(&mut self, s: u8) -> &mut T {
+        &mut self.0[s as usize]
     }
 }

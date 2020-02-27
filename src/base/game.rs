@@ -239,7 +239,7 @@ impl GameState {
 
                 let lands = desc.map.lands.iter().filter(|l| card.can_target(l));
                 for land in lands {
-                    self.do_effect(ExploreEffect { land_index: land.map_index })?;
+                    self.do_effect(ExploreEffect { land_index: land.index_in_map })?;
                 }
 
                 self.invader.advance();
@@ -300,17 +300,17 @@ impl GameState {
                                 match &inv_kind {
                                     InvaderActionKind::Explore => {
                                         for land in lands {
-                                            self.do_effect(ExploreEffect { land_index: land.map_index })?;
+                                            self.do_effect(ExploreEffect { land_index: land.index_in_map })?;
                                         }
                                     }
                                     InvaderActionKind::Build => {
                                         for land in lands {
-                                            self.do_effect(BuildEffect { land_index: land.map_index })?;
+                                            self.do_effect(BuildEffect { land_index: land.index_in_map })?;
                                         }
                                     }
                                     InvaderActionKind::Ravage => {
                                         for land in lands {
-                                            self.do_effect(RavageEffect { land_index: land.map_index })?;
+                                            self.do_effect(RavageEffect { land_index: land.index_in_map })?;
                                         }
                                     }
                                 }

@@ -22,7 +22,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
             .filter(|l| l.kind == LandKind::Wetlands)
             // boards are sorted lowest to highest by default
             .last().unwrap()
-            .map_index;
+            .index_in_map;
         game.do_effect(AddPresenceEffect{land_index, spirit: si as u8, count: 1})?;
 
         Ok(())

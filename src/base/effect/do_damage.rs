@@ -24,7 +24,7 @@ impl Effect for DoInvaderDamageEffect {
         game.log(format!("invader damage in {}.", self.land_index));
 
         let land = game.map.lands.get_mut(self.land_index as usize).unwrap();
-        let invader_damage: u16 = land.pieces.iter().map(|p| p.invader_damage()).sum();
+        let invader_damage: u16 = land.invaders.iter().map(|p| p.attack).sum();
 
         // TODO intercept and modify this damage:
         // * Adversary manipulations

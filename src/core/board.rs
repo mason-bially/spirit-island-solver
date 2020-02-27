@@ -4,7 +4,11 @@ use std::{
     rc::{Rc},
 };
 
-use crate::base::{BoardDescription, LandDescription, LandKind, Piece, InvaderKind, TokenKind};
+use crate::base::{
+    BoardDescription, LandDescription,
+    LandKind, InvaderKind, TokenKind,
+    TokenMap, InvaderMap
+};
 
 pub fn make_board_a() -> BoardDescription {
     let mut lands = vec![
@@ -13,9 +17,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Ocean,
             is_coastal: true,
             edge_range: Some((2, 8)),
-            board_index: 0,
-            starting_pieces: Vec::new(),
-            map_index: 0,
+            index_on_board: 0,
+
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0),
+            starting_dahan: 0,
+
+            index_in_map: 0,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -23,9 +31,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Mountain,
             is_coastal: true,
             edge_range: Some((8, 10)),
-            board_index: 1,
-            starting_pieces: vec![],
-            map_index: 1,
+            index_on_board: 1,
+            
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0),
+            starting_dahan: 0,
+
+            index_in_map: 1,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -33,12 +45,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Wetlands,
             is_coastal: true,
             edge_range: None,
-            board_index: 2,
-            starting_pieces: vec![
-                Piece::Invader { kind: InvaderKind::City, health: 2 },
-                Piece::Dahan { health: 2 },
-            ],
-            map_index: 2,
+            index_on_board: 2,
+            
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0).map(InvaderKind::City, 1),
+            starting_dahan: 1,
+
+            index_in_map: 2,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -46,12 +59,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Jungle,
             is_coastal: true,
             edge_range: Some((25, 1)),
-            board_index: 3,
-            starting_pieces: vec![
-                Piece::Dahan { health: 2 },
-                Piece::Dahan { health: 2 },
-            ],
-            map_index: 3,
+            index_on_board: 3,
+
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0),
+            starting_dahan: 2,
+
+            index_in_map: 3,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -59,11 +73,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Sands,
             is_coastal: false,
             edge_range: Some((23, 25)),
-            board_index: 4,
-            starting_pieces: vec![
-                Piece::Token { kind: TokenKind::Blight, count: 1 }
-            ],
-            map_index: 4,
+            index_on_board: 4,
+
+            starting_tokens: TokenMap::new(|| 0).map(TokenKind::Blight, 1),
+            starting_invaders: InvaderMap::new(|| 0),
+            starting_dahan: 0,
+
+            index_in_map: 4,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -71,9 +87,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Wetlands,
             is_coastal: false,
             edge_range: Some((22, 23)),
-            board_index: 5,
-            starting_pieces: vec![],
-            map_index: 5,
+            index_on_board: 5,
+
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0),
+            starting_dahan: 0,
+
+            index_in_map: 5,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -81,11 +101,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Mountain,
             is_coastal: false,
             edge_range: Some((10, 12)),
-            board_index: 6,
-            starting_pieces: vec![
-                Piece::Dahan { health: 2 },
-            ],
-            map_index: 6,
+            index_on_board: 6,
+
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0),
+            starting_dahan: 1,
+
+            index_in_map: 6,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -93,12 +115,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Sands,
             is_coastal: false,
             edge_range: Some((16, 22)),
-            board_index: 7,
-            starting_pieces: vec![
-                Piece::Dahan { health: 2 },
-                Piece::Dahan { health: 2 },
-            ],
-            map_index: 7,
+            index_on_board: 7,
+
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0),
+            starting_dahan: 2,
+
+            index_in_map: 7,
             parent_board_index: 0,
         }),
         Rc::new(LandDescription {
@@ -106,11 +129,13 @@ pub fn make_board_a() -> BoardDescription {
             kind: LandKind::Jungle,
             is_coastal: false,
             edge_range: Some((12, 16)),
-            board_index: 8,
-            starting_pieces: vec![
-                Piece::Invader { kind: InvaderKind::Town, health: 2 },
-            ],
-            map_index: 8,
+            index_on_board: 8,
+
+            starting_tokens: TokenMap::new(|| 0),
+            starting_invaders: InvaderMap::new(|| 0).map(InvaderKind::Town, 1),
+            starting_dahan: 0,
+
+            index_in_map: 8,
             parent_board_index: 0,
         }),
     ];

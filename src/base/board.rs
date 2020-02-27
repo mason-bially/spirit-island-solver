@@ -6,18 +6,26 @@ use std::{
 };
 
 use super::{
-    piece::{TokenKind, InvaderKind, Piece},
+    piece::*,
     concept::{LandKind, ContentPack, search_for_board},
 };
 
 pub struct LandDescription {
+    // -- Primary description elements --
+
+    pub index_on_board: u8,
     pub adjacent: Vec<u8>,
     pub kind: LandKind,
     pub is_coastal: bool,
-    pub edge_range: Option<(u8, u8)>, // ranges from 0 to 20... need to figure out the tiling, is it 7 gaps a side?
-    pub board_index: u8,
-    pub starting_pieces: Vec<Piece>,
-    pub map_index: u8,
+    pub edge_range: Option<(u8, u8)>, // ranges from 0 to 27... need to figure out the tiling, is it 7 gaps a side?
+
+    pub starting_tokens: TokenMap<u8>,
+    pub starting_invaders: InvaderMap<u8>,
+    pub starting_dahan: u8,
+
+    // -- Generated description elements --
+
+    pub index_in_map: u8,
     pub parent_board_index: u8,
 }
 
@@ -35,13 +43,20 @@ pub struct MapDescription {
 #[derive(Clone)]
 pub struct LandState {
     pub desc: Rc<LandDescription>,
+
     pub is_in_play: bool,
-    pub pieces: Vec<Piece>,
+
+    pub tokens: TokenMap<u8>,
+    pub presence: SpiritMap<u8>,
+
+    pub invaders: Vec<Invader>,
+    pub dahan: Vec<Dahan>,
 }
 
 #[derive(Clone)]
 pub struct MapState {
     pub desc: Rc<MapDescription>,
+
     pub lands: Vec<LandState>,
 }
 
@@ -55,7 +70,7 @@ pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> 
         let mut board = search_for_board(content, board_name).unwrap();
         for land in board.lands.iter_mut() {
             let land_mut = Rc::get_mut(land).unwrap();
-            land_mut.map_index += land_count;
+            land_mut.index_in_map += land_count;
             land_mut.parent_board_index = board_count;
             
             lands.push(land.clone());
@@ -88,46 +103,8 @@ impl MapDescription {
 }
 
 impl LandState {
-    pub fn add_tokens(&mut self, kind: TokenKind, amount: u8) {
-        let entry = self.pieces.iter_mut().find(|piece| match piece {
-            Piece::Token{kind: pkind, ..} => *pkind == kind,
-            _ => false
-        });
-
-        if let Some(Piece::Token{count, ..}) = entry {
-            *count += amount;
-        } else {
-            self.pieces.push(Piece::Token{kind, count: amount});
-        }
-    }
-
-    pub fn get_token_count(&mut self, kind: TokenKind) -> u8 {
-        let entry = self.pieces.iter().find(|piece| match piece {
-            Piece::Token{kind: pkind, ..} => *pkind == kind,
-            _ => false
-        });
-
-        match entry {
-            Some(Piece::Token {count, ..}) => *count,
-            _ => 0
-        }
-    }
-
-    pub fn add_presence(&mut self, spirit: u8, amount: u8) {
-        let entry = self.pieces.iter_mut().find(|piece| match piece {
-            Piece::Presence{spirit: pspirit, ..} => *pspirit == spirit,
-            _ => false
-        });
-
-        if let Some(Piece::Presence{count, ..}) = entry {
-            *count += amount;
-        } else {
-            self.pieces.push(Piece::Presence{spirit, count: amount});
-        }
-    }
-
     pub fn add_invader(&mut self, kind: InvaderKind) {
-        self.pieces.push(Piece::Invader{kind: kind, health: kind.health()});
+        self.invaders.push(Invader::new(kind));
     }
 }
 
@@ -139,8 +116,17 @@ impl MapState {
             for land in board.lands.iter() {
                 lands.push(LandState {
                     desc: land.clone(),
-                    is_in_play: land.board_index != 0,
-                    pieces: land.starting_pieces.clone(),
+
+                    is_in_play: land.index_on_board != 0,
+
+                    tokens: land.starting_tokens.clone(),
+                    presence: SpiritMap::new(|| 0),
+
+                    invaders: repeat(Invader::new(InvaderKind::Explorer)).take(land.starting_invaders[InvaderKind::Explorer] as usize)
+                        .chain(repeat(Invader::new(InvaderKind::Town)).take(land.starting_invaders[InvaderKind::Town] as usize))
+                        .chain(repeat(Invader::new(InvaderKind::City)).take(land.starting_invaders[InvaderKind::City] as usize))
+                        .collect(),
+                    dahan: repeat(Dahan::new()).take(land.starting_dahan as usize).collect(),
                 });
             }
         }

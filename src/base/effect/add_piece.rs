@@ -25,13 +25,13 @@ impl Effect for AddBlightEffect {
 
         // 2. Add blight to the land
         let land = game.map.lands.get_mut(self.land_index as usize).unwrap();
-        land.add_tokens(TokenKind::Blight, 1);
+        land.tokens[TokenKind::Blight] += 1;
 
         // 3. Kill presence
         //land.destroy_presence();
 
         // 4. Check for cascade
-        if land.get_token_count(TokenKind::Blight) > 1 {
+        if land.tokens[TokenKind::Blight] > 1 {
             game.do_effect(CascadeBlightDecision {src_land_index: self.land_index})?;
         }
         
@@ -63,7 +63,7 @@ impl Effect for AddPresenceEffect {
 
         // 1. Add presence to the land
         let land = game.map.lands.get_mut(self.land_index as usize).unwrap();
-        land.add_presence(self.spirit, self.count);
+        land.presence[self.spirit] += self.count;
         
         Ok(())
     }

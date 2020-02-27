@@ -17,7 +17,7 @@ impl Effect for ExploreEffect {
 
         let adj_lands = game.map.desc.lands_adjacent(self.land_index);
         let will_explore = adj_lands.iter().any(|l|
-            game.map.lands.get(l.map_index as usize).unwrap().pieces.iter().any(|p| p.is_building())
+            game.map.lands.get(l.index_in_map as usize).unwrap().invaders.iter().any(|i| i.is_building())
         );
 
         if will_explore {
@@ -50,13 +50,12 @@ impl Effect for BuildEffect {
         game.log(format!("Building in land {}.", self.land_index));
 
         let land = game.map.lands.get(self.land_index as usize).unwrap();
-        let will_build = land.pieces.iter().any(|p| p.is_invader());
 
-        if will_build {
-            let building_type_distance : i8 = land.pieces.iter().map(|p|
-                match p {
-                    Piece::Invader { kind: InvaderKind::Town, .. } => -1,
-                    Piece::Invader { kind: InvaderKind::City, .. } => 1,
+        if land.invaders.len() != 0 {
+            let building_type_distance : i8 = land.invaders.iter().map(|i|
+                match i.kind {
+                    InvaderKind::Town => -1,
+                    InvaderKind::City => 1,
                     _ => 0,
                 }).sum();
 
@@ -89,9 +88,8 @@ impl Effect for RavageEffect {
         game.log(format!("Ravaging in land {}.", self.land_index));
 
         let land = game.map.lands.get_mut(self.land_index as usize).unwrap();
-        let will_ravage = land.pieces.iter().any(|p| p.is_invader());
 
-        if will_ravage {
+        if land.invaders.len() != 0 {
             // 1. Invaders to damage
             game.do_effect(DoInvaderDamageEffect { land_index: self.land_index, count: 1 })?;
 
