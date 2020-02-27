@@ -4,10 +4,6 @@ use std::{
     fmt,
 };
 
-use super::{
-    concept::{InvaderActionKind},
-};
-
 #[derive(Copy, Clone)]
 pub enum InvaderStep {
     BlightedIsland,

@@ -62,10 +62,10 @@ pub struct SimpleDecisionMaker {
 }
 
 impl SimpleDecisionMaker {
-    pub fn new() -> SimpleDecisionMaker {
-        SimpleDecisionMaker {
+    pub fn new() -> Box<SimpleDecisionMaker> {
+        Box::new(SimpleDecisionMaker {
 
-        }
+        })
     }
 }
 

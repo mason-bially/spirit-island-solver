@@ -27,7 +27,7 @@ impl ContentPack for CoreContent {
         ]
     }
 
-    fn get_fear_cards(&self) -> Vec<Box<dyn FearCardDescription>> {
+    fn get_fear_cards(&self) -> Vec<FearCardDescription> {
         make_fear_cards()
     }
 }

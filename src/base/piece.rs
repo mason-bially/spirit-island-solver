@@ -2,7 +2,6 @@
 
 use std::{
     fmt,
-    iter::*,
 };
 
 #[derive(Copy, Clone, PartialEq)]
@@ -28,7 +27,6 @@ impl InvaderKind {
             InvaderKind::Explorer => 1,
             InvaderKind::Town => 2,
             InvaderKind::City => 3,
-            _ => 0,
         }
     }
 
@@ -37,7 +35,6 @@ impl InvaderKind {
             InvaderKind::Explorer => 1,
             InvaderKind::Town => 2,
             InvaderKind::City => 3,
-            _ => 0,
         }
     }
 

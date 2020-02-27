@@ -25,9 +25,11 @@ mod add_piece;
 mod do_damage;
 mod growth;
 mod invader_action;
+mod meta;
 
 pub use self::add_piece::{AddBlightEffect, AddPresenceEffect, AddInvaderEffect};
 pub use self::do_damage::{DoSpiritDamageEffect, DoInvaderDamageEffect};
 pub use self::growth::{};
 pub use self::invader_action::{ExploreEffect, BuildEffect, RavageEffect};
+pub use self::meta::{NotImplementedEffect};
 

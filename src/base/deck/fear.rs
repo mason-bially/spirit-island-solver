@@ -10,25 +10,27 @@ use rand::prelude::*;
 
 use crate::base::{
     concept::{TerrorLevel},
+    effect::{Effect},
 };
 
 
-pub trait FearCardDescription {
-
+#[derive(Clone)]
+pub struct FearCardDescription {
+    pub name: &'static str,
+    pub effect_1: Box<dyn Effect>,
+    pub effect_2: Box<dyn Effect>,
+    pub effect_3: Box<dyn Effect>,
 }
 
 
 #[derive(Copy, Clone)]
 pub struct FearCard {
-    index: usize
+    pub index: usize
 }
 
 
 #[derive(Clone)]
 pub struct FearDeck {
-    // List of all possible fear cards
-    pub desc: Rc<Vec<Box<dyn FearCardDescription>>>,
-            
     tier2_count: usize,
     tier3_count: usize,
 
@@ -38,10 +40,8 @@ pub struct FearDeck {
 }
 
 impl FearDeck {
-    pub fn new(desc: Rc<Vec<Box<dyn FearCardDescription>>>) -> FearDeck {
+    pub fn new() -> FearDeck {
         FearDeck {
-            desc,
-
             tier2_count: 0,
             tier3_count: 0,
 
@@ -51,8 +51,11 @@ impl FearDeck {
         }
     }
 
-    pub fn init(&mut self, mut rng: &mut dyn RngCore, fear_card_counts: (u8, u8, u8)) {
-        let mut all_cards: Vec<FearCard> = self.desc.iter()
+    pub fn init(&mut self, 
+            desc: &Rc<Vec<FearCardDescription>>,
+            mut rng: &mut dyn RngCore,
+            fear_card_counts: (u8, u8, u8)) {
+        let mut all_cards: Vec<FearCard> = desc.iter()
             .enumerate()
             .map(|(i, _)| FearCard{ index: i })
             .collect();

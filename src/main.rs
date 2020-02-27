@@ -18,7 +18,6 @@ mod core;
 mod solve;
 
 use crate::core::{CoreContent};
-use crate::solve::{SolveEngine, SimpleDecisionMaker};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("Spirit Island Solver")
@@ -65,6 +64,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let state = base::GameState::new(description, rng);
 
     let mut solver = solve::SolveEngine::new(&state,
-        Box::new(solve::SimpleDecisionMaker {}));
+        solve::SimpleDecisionMaker::new());
     solver.main()
 }

@@ -91,7 +91,7 @@ pub trait ContentPack {
     fn get_spirits(&self) -> Vec<Box<dyn SpiritDescription>>;
     fn get_boards(&self) -> Vec<BoardDescription>;
 
-    fn get_fear_cards(&self) -> Vec<Box<dyn FearCardDescription>>;
+    fn get_fear_cards(&self) -> Vec<FearCardDescription>;
 }
 
 
@@ -123,7 +123,7 @@ pub fn search_for_board(content: &Vec<Box<dyn ContentPack>>, name: &str) -> Opti
     None
 }
 
-pub fn join_fear_cards(content: &Vec<Box<dyn ContentPack>>) -> Vec<Box<dyn FearCardDescription>>
+pub fn join_fear_cards(content: &Vec<Box<dyn ContentPack>>) -> Vec<FearCardDescription>
 {
     let mut result = Vec::new();
     for c in content.iter() {

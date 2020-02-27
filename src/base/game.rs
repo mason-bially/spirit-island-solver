@@ -15,7 +15,7 @@ pub struct GameDescription {
     pub spirits: Vec<Box<dyn SpiritDescription>>,
     pub map: Rc<MapDescription>,
 
-    pub fear: Rc<Vec<Box<dyn FearCardDescription>>>,
+    pub fear: Rc<Vec<FearCardDescription>>,
 }
 
 impl GameDescription {
@@ -90,7 +90,7 @@ impl GameState {
 
             invader: InvaderDeck::new(),
 
-            fear: FearDeck::new(desc.fear.clone()),
+            fear: FearDeck::new(),
             fear_pool: 0,
             fear_generated: 0,
 
@@ -113,6 +113,14 @@ impl GameState {
 
     pub fn log(&self, s: String) {
         println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), s);
+    }
+
+    pub fn do_effect_box(&mut self, effect: Box<dyn Effect>) -> Result<(), StepFailure> {
+        self.effect_stack.push(effect.box_clone());
+        let res = effect.apply_effect(self)?;
+        self.effect_stack.pop();
+
+        Ok(res)
     }
 
     pub fn do_effect<T : Effect>(&mut self, effect: T) -> Result<(), StepFailure> {
@@ -208,7 +216,7 @@ impl GameState {
                 self.invader.set_state(invaders, Vec::new(), self.desc.adversary.invader_steps());
                 self.invader.shuffle_draw(&mut self.rng.get_rng());
 
-                //self.fear.init(&mut self.rng.get_rng(), desc.adversary.fear_cards());
+                self.fear.init(&desc.fear, &mut self.rng.get_rng(), desc.adversary.fear_cards());
 
                 desc.adversary.setup(self);
 
@@ -217,7 +225,7 @@ impl GameState {
             GameStep::SetupSpirit => {
                 for (index, spirit) in desc.spirits.iter().enumerate() {
                     self.log(format!("Setting up spirit {} ({})", index, spirit.name()));
-                    spirit.do_setup(self, index);
+                    spirit.do_setup(self, index)?;
                 }
 
                 GameStep::SetupExplore
@@ -261,6 +269,21 @@ impl GameState {
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_event()?))
                             }
                             InvaderStep::FearEffect(fear_card) => {
+                                let &card = self.fear.pending
+                                    .get(*fear_card as usize).unwrap();
+                                let card_desc = desc.fear
+                                    .get(card.index).unwrap();
+
+                                let terror_level = self.fear.terror_level();
+
+                                self.log(format!("Fear Card ({}): {}", terror_level, card_desc.name));
+
+                                self.do_effect_box(
+                                    match terror_level {
+                                        TerrorLevel::I => card_desc.effect_1.clone(),
+                                        TerrorLevel::II => card_desc.effect_2.clone(),
+                                        TerrorLevel::III => card_desc.effect_3.clone(),
+                                    })?;
 
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_fear()?))
                             }
