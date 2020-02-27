@@ -1,6 +1,7 @@
 use super::concept::{AdversaryDescription, InvaderActionKind};
-use super::step::{GameStep, InvaderCard};
+use super::step::{GameStep};
 use super::game::{GameState};
+use super::deck::{InvaderCard};
 
 pub struct DefaultAdversaryDescription {
 

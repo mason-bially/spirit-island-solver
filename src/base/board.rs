@@ -2,35 +2,13 @@
 
 use std::{
     rc::{Rc},
-    fmt,
     iter::*,
 };
 
 use super::{
     piece::{TokenKind, InvaderKind, Piece},
-    concept::{ContentPack, search_for_board},
+    concept::{LandKind, ContentPack, search_for_board},
 };
-
-#[derive(Copy, Clone, PartialEq)]
-pub enum LandKind {
-    Ocean,
-    Jungle,
-    Mountain,
-    Sands,
-    Wetlands,
-}
-
-impl fmt::Display for LandKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       match *self {
-            LandKind::Ocean => write!(f, "Ocean"),
-            LandKind::Jungle => write!(f, "Jungle"),
-            LandKind::Mountain => write!(f, "Mountain"),
-            LandKind::Sands => write!(f, "Sands"),
-            LandKind::Wetlands => write!(f, "Wetlands"),
-       }
-    }
-}
 
 pub struct LandDescription {
     pub adjacent: Vec<u8>,

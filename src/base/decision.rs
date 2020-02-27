@@ -1,8 +1,4 @@
 
-use std::{
-    any::Any
-};
-
 use super::*;
 
 pub trait Decision : Effect {
@@ -11,8 +7,9 @@ pub trait Decision : Effect {
 
 #[derive(Clone)]
 pub enum DecisionChoice {
-    TargetLand(u8),
     SequenceDecision(Vec<u8>),
+    TargetLand(u8),
+    TargetPresence(u8),
 }
 
 mod cascade_blight;

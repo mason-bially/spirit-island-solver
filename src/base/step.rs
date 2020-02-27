@@ -1,24 +1,12 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::Rc,
     fmt,
 };
 
 use super::{
     concept::{InvaderActionKind},
-    board::{LandKind, LandDescription},
 };
-
-impl fmt::Display for InvaderActionKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &*self {
-            InvaderActionKind::Ravage => write!(f, "Ravage"),
-            InvaderActionKind::Build => write!(f, "Build"),
-            InvaderActionKind::Explore => write!(f, "Explore"),
-       }
-    }
-}
 
 #[derive(Copy, Clone)]
 pub enum InvaderStep {
@@ -86,53 +74,32 @@ impl fmt::Display for GameStep {
 }
 
 
-#[derive(Copy, Clone)]
-pub enum InvaderCard {
-    Phase1(LandKind),
-    Phase2(LandKind),
-    Phase3(LandKind, LandKind),
+// The state of the game state is invalid
+pub enum StepFailure {
+    InternalError(String),
+    RulesViolation(String),
+    GameOverVictory,
+    GameOverDefeat,
+    DecisionRequired,
+    DecisionMismatch,
 }
 
-impl fmt::Display for InvaderCard {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       match &*self {
-            InvaderCard::Phase1(a) => write!(f, "Phase I {}", a),
-            InvaderCard::Phase2(LandKind::Ocean) => write!(f, "Phase II Coastal"),
-            InvaderCard::Phase2(a) => write!(f, "Phase II {} +", a),
-            InvaderCard::Phase3(a, b) => write!(f, "Phase III {}/{}", a, b),
-       }
-    }
-}
-
-impl InvaderCard {
-    pub fn can_target(&self, land: &Rc<LandDescription>) -> bool {
-        match *self {
-            InvaderCard::Phase1(kind) => kind == land.kind,
-            InvaderCard::Phase2(LandKind::Ocean) => land.kind != LandKind::Ocean && land.is_coastal,
-            InvaderCard::Phase2(kind) => kind == land.kind,
-            InvaderCard::Phase3(kind_a, kind_b) => kind_a == land.kind || kind_b == land.kind,
+impl From<StepFailure> for Box<dyn std::error::Error> {
+    fn from(failure: StepFailure) -> Self {
+        match failure {
+            StepFailure::GameOverVictory => 
+                Box::<dyn std::error::Error>::from("Game Over Victory".to_string()),
+            StepFailure::GameOverDefeat =>
+                Box::<dyn std::error::Error>::from("Game Over Defeat".to_string()),
+            StepFailure::InternalError(msg) =>
+                Box::<dyn std::error::Error>::from(format!("Internal: {}", msg)),
+            StepFailure::RulesViolation(msg) =>
+                Box::<dyn std::error::Error>::from(format!("Rules Violation - {}", msg)),
+            StepFailure::DecisionRequired => 
+                Box::<dyn std::error::Error>::from("Decision Required".to_string()),
+            StepFailure::DecisionMismatch => 
+                Box::<dyn std::error::Error>::from("Decision Mismatch".to_string()),
         }
     }
 }
 
-pub fn generate_invader_deck() -> Vec<InvaderCard> {
-    vec![
-        InvaderCard::Phase3(LandKind::Jungle, LandKind::Mountain),
-        InvaderCard::Phase3(LandKind::Jungle, LandKind::Sands),
-        InvaderCard::Phase3(LandKind::Jungle, LandKind::Wetlands),
-        InvaderCard::Phase3(LandKind::Mountain, LandKind::Sands),
-        InvaderCard::Phase3(LandKind::Mountain, LandKind::Wetlands),
-        InvaderCard::Phase3(LandKind::Sands, LandKind::Wetlands),
-        
-        InvaderCard::Phase2(LandKind::Ocean),
-        InvaderCard::Phase2(LandKind::Jungle),
-        InvaderCard::Phase2(LandKind::Mountain),
-        InvaderCard::Phase2(LandKind::Sands),
-        InvaderCard::Phase2(LandKind::Wetlands),
-
-        InvaderCard::Phase1(LandKind::Jungle),
-        InvaderCard::Phase1(LandKind::Mountain),
-        InvaderCard::Phase1(LandKind::Sands),
-        InvaderCard::Phase1(LandKind::Wetlands),
-    ]
-}

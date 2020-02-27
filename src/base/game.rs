@@ -6,167 +6,8 @@ use std::{
     collections::VecDeque,
 };
 
-use rand::prelude::*;
-use rand_chacha::{ChaChaRng};
-
 use super::*;
 
-
-/* 
-    Our RNG needs to be deterministic and copyable.
-*/
-
-pub trait DeterministicRng {
-    fn get_rng<'a>(&'a mut self) -> &'a mut dyn RngCore;
-    fn box_clone(&self) -> Box<dyn DeterministicRng>;
-}
-
-pub struct DeterministicChaCha {
-    rng: ChaChaRng
-}
-
-impl DeterministicChaCha {
-    pub fn new(rng: ChaChaRng) -> Self {
-        DeterministicChaCha {
-            rng
-        }
-    }
-}
-
-impl DeterministicRng for DeterministicChaCha {
-    fn get_rng<'a>(&'a mut self) -> &'a mut dyn RngCore {
-        &mut self.rng
-    }
-    fn box_clone(&self) -> Box<dyn DeterministicRng> {
-        Box::new(DeterministicChaCha::new(self.rng.clone()))
-    }
-}
-
-impl Clone for Box<dyn DeterministicRng> {
-    fn clone(&self) -> Self {
-        self.box_clone()
-    }
-}
-
-
-/*
-    In general decks of cards organized as Vecs will follow physical card rules:
-
-    * Push a card means put it on top of the stack.
-    * Pop means take off the top of the stack.
-
-    This does however mean that the first card when iterating is the _bottom_ card which might be the last one poped.
-*/
-
-pub trait Deck<T> {
-    fn shuffle_draw(&mut self, rng: &mut dyn RngCore);
-    fn draw(&mut self, count: usize) -> Vec<T>;
-}
-
-#[derive(Clone)]
-pub struct SimpleDeck<T> {
-    draw: Vec<T>,
-    discard: Vec<T>,
-}
-
-impl<T> SimpleDeck<T> {
-    pub fn new() -> Self {
-        SimpleDeck::<T> {
-            draw: Vec::new(),
-            discard: Vec::new(),
-        }
-    }
-
-    pub fn set_state(&mut self, draw: Vec<T>, discard: Vec<T>) {
-        self.draw = draw;
-        self.discard = discard;
-    }
-}
-
-impl<T> Deck<T> for SimpleDeck<T> {
-    fn shuffle_draw(&mut self, mut rng: &mut dyn RngCore) {
-        self.draw.shuffle(&mut rng);
-    }
-
-    fn draw(&mut self, count: usize) -> Vec<T> {
-        let mut res = Vec::new();
-        for _ in 0..count {
-            res.insert(0, self.draw.pop().unwrap());
-        }
-
-        res
-    }
-}
-
-#[derive(Clone)]
-pub struct InvaderDeck {
-    pub draw: Vec<InvaderCard>,
-    discard: Vec<InvaderCard>,
-    pending: VecDeque<Vec<InvaderCard>>,
-    sequence: Vec<InvaderActionKind>,
-}
-
-impl InvaderDeck {
-    pub fn new() -> InvaderDeck {
-        InvaderDeck {
-            draw: Vec::new(),
-            discard: Vec::new(),
-            pending: VecDeque::new(),
-            sequence: Vec::new(),
-        }
-    }
-
-    pub fn step_count(&self) -> u8 {
-        self.sequence.len() as u8
-    }
-
-    pub fn get_step_kind(&self, index: u8) -> InvaderActionKind {
-        return self.sequence[index as usize];
-    }
-
-    pub fn set_state(&mut self, draw: Vec<InvaderCard>, discard: Vec<InvaderCard>, sequence: Vec<InvaderActionKind>) {
-        self.draw = draw;
-        self.discard = discard;
-        self.sequence = sequence;
-
-        for step in self.sequence.iter() { self.pending.push_back(Vec::new()); }
-    }
-
-    pub fn draw_into_pending(&mut self) {
-        let draw = self.draw(1);
-        let card = draw.first().unwrap();
-
-        self.pending.back_mut().unwrap().push(*card);
-    }
-
-    pub fn advance(&mut self) {
-        self.discard.append(&mut self.pending.pop_front().unwrap());
-        self.pending.push_back(Vec::new());
-    }
-}
-
-impl Deck<InvaderCard> for InvaderDeck {
-    fn shuffle_draw(&mut self, mut rng: &mut dyn RngCore) {
-        // have to shuffle specific parts
-        let partition2 = self.draw.iter().position(|&x| if let InvaderCard::Phase2(_) = x { true } else { false }).unwrap();
-        let partition1 = self.draw.iter().position(|&x| if let InvaderCard::Phase1(_) = x { true } else { false }).unwrap();
-
-        assert!(partition2 < partition1);
-
-        self.draw[0..partition2].shuffle(&mut rng);
-        self.draw[partition2..partition1].shuffle(&mut rng);
-        self.draw[partition1..15].shuffle(&mut rng);
-    }
-
-    fn draw(&mut self, count: usize) -> Vec<InvaderCard> {
-        let mut res = Vec::new();
-        for _ in 0..count {
-            res.insert(0, self.draw.pop().unwrap());
-        }
-
-        res
-    }
-}
 
 pub struct GameDescription {
     pub content: Vec<Box<dyn ContentPack>>,
@@ -191,34 +32,6 @@ impl GameDescription {
     }
 }
 
-// The state of the game state is invalid
-pub enum StepFailure {
-    InternalError(String),
-    RulesViolation(String),
-    GameOverVictory,
-    GameOverDefeat,
-    DecisionRequired,
-    DecisionMismatch,
-}
-
-impl From<StepFailure> for Box<dyn std::error::Error> {
-    fn from(failure: StepFailure) -> Self {
-        match failure {
-            StepFailure::GameOverVictory => 
-                Box::<dyn std::error::Error>::from("Game Over Victory".to_string()),
-            StepFailure::GameOverDefeat =>
-                Box::<dyn std::error::Error>::from("Game Over Defeat".to_string()),
-            StepFailure::InternalError(msg) =>
-                Box::<dyn std::error::Error>::from(format!("Internal: {}", msg)),
-            StepFailure::RulesViolation(msg) =>
-                Box::<dyn std::error::Error>::from(format!("Rules Violation - {}", msg)),
-            StepFailure::DecisionRequired => 
-                Box::<dyn std::error::Error>::from("Decision Required".to_string()),
-            StepFailure::DecisionMismatch => 
-                Box::<dyn std::error::Error>::from("Decision Mismatch".to_string()),
-        }
-    }
-}
 
 
 #[derive(Clone)]
@@ -234,17 +47,19 @@ pub struct GameState {
     pub choices: VecDeque<DecisionChoice>,
     pub effect_stack: Vec<Box<dyn Effect>>,
 
-    pub invader: InvaderDeck,
-
     pub map: MapState,
+
+    pub invader: InvaderDeck,
+    
+    pub fear: FearDeck,
+    pub fear_pool: u8,
+    pub fear_generated: u8,
 
     pub blight_remaining: u8,
 
     /*
     fears: SimpleDeck<Box<dyn Fear>>,
     fears_pending: Vec<Box<dyn Fear>>,
-    fear_pool: u8,
-    fear_generated: u8,
     fear_counts: (u8, u8, u8),
 
     minor_powers: SimpleDeck<Box<dyn Power>>,
@@ -265,18 +80,17 @@ impl GameState {
             choices: VecDeque::new(),
             effect_stack: Vec::new(),
 
+            map: MapState::new(desc.map.clone()),
+
             invader: InvaderDeck::new(),
 
-            map: MapState::new(desc.map.clone()),
+            fear: FearDeck::new(),
+            fear_pool: 0,
+            fear_generated: 0,
 
             blight_remaining: 5,
 
             /*
-            fears: SimpleDeck::new(),
-            fears_pending: Vec::new(),
-            fear_pool: 0,
-            fear_generated: 0,
-            fear_counts: (3, 3, 3),
 
             minor_powers: SimpleDeck::new(),
             major_powers: SimpleDeck::new(),
@@ -333,12 +147,12 @@ impl GameState {
             _ => 0,
         };
 
-        //if (next_card as usize) < self.fears_pending.len() {
-        //    Ok(InvaderStep::FearEffect(next_card))
-        //}
-        //else {
+        if (next_card as usize) < self.fear.pending.len() {
+            Ok(InvaderStep::FearEffect(next_card))
+        }
+        else {
             Ok(self.step_to_next_invader()?)
-        //}
+        }
     }
     pub fn step_to_next_invader(&mut self) -> Result<InvaderStep, StepFailure> {
         let original_next = match &self.step {
@@ -394,7 +208,7 @@ impl GameState {
             }
             GameStep::SetupSpirit => {
                 for (index, spirit) in desc.spirits.iter().enumerate() {
-                    self.log(format!("Setting up spirit {} ({})", spirit.name(), index));
+                    self.log(format!("Setting up spirit {} ({})", index, spirit.name()));
                     spirit.do_setup(self, index);
                 }
 

@@ -1,12 +1,48 @@
+
+use std::{
+    fmt,
+};
+
 use super::board::{BoardDescription};
-use super::step::{GameStep};
-use super::game::{GameState, StepFailure};
+use super::step::{StepFailure};
+use super::game::{GameState};
 
 #[derive(Copy, Clone)]
 pub enum InvaderActionKind {
     Ravage,
     Build,
     Explore
+}
+
+impl fmt::Display for InvaderActionKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &*self {
+            InvaderActionKind::Ravage => write!(f, "Ravage"),
+            InvaderActionKind::Build => write!(f, "Build"),
+            InvaderActionKind::Explore => write!(f, "Explore"),
+       }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum LandKind {
+    Ocean,
+    Jungle,
+    Mountain,
+    Sands,
+    Wetlands,
+}
+
+impl fmt::Display for LandKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+       match *self {
+            LandKind::Ocean => write!(f, "Ocean"),
+            LandKind::Jungle => write!(f, "Jungle"),
+            LandKind::Mountain => write!(f, "Mountain"),
+            LandKind::Sands => write!(f, "Sands"),
+            LandKind::Wetlands => write!(f, "Wetlands"),
+       }
+    }
 }
 
 pub trait SpiritDescription {
@@ -16,15 +52,11 @@ pub trait SpiritDescription {
     fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 }
 
-pub trait Power {
+pub trait PowerCardDescription {
 
 }
 
-pub trait Fear {
-
-}
-
-pub trait Event {
+pub trait EventCardDescription {
 
 }
 
