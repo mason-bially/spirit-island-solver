@@ -16,6 +16,7 @@ pub struct GameDescription {
     pub table: Rc<TableDescription>,
 
     pub fear: Vec<Rc<FearCardDescription>>,
+    pub power: Vec<Rc<PowerCardDescription>>,
 }
 
 impl GameDescription {
@@ -26,7 +27,11 @@ impl GameDescription {
         table: Box<TableDescription>,
     ) -> GameDescription {
         let fear_cards = join_fear_cards(&content);
-        let power_cards = join_power_cards(&content);
+        let mut power_cards = join_power_cards(&content);
+
+        for (index, spirit) in spirits.iter().enumerate() {
+            power_cards.extend(spirit.get_power_cards(index as u8));
+        }
 
         GameDescription {
             content,
@@ -35,6 +40,7 @@ impl GameDescription {
             table: Rc::from(table),
 
             fear: fear_cards.into_iter().map(Rc::from).collect(),
+            power: power_cards.into_iter().map(Rc::from).collect(),
         }
     }
 }
@@ -270,8 +276,7 @@ impl GameState {
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_event()?))
                             }
                             InvaderStep::FearEffect(fear_card) => {
-                                let card = self.fear.pending
-                                    .get(*fear_card as usize).unwrap();
+                                let card = self.fear.pending[*fear_card as usize].clone();
 
                                 let terror_level = self.fear.terror_level();
 

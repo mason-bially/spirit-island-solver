@@ -2,7 +2,7 @@
 
 use crate::base::{
     GameState, StepFailure, SpiritDescription,
-    LandKind, PowerCardKind, PowerSpeed,
+    LandKind, PowerCardKind, PowerSpeed, Element, ElementMap,
     PowerCardDescription,
     effect::*
 };
@@ -16,33 +16,37 @@ impl SpiritDescription for SpiritDescriptionRiver {
     fn name(&self) -> &'static str { "River Surges in Sunlight" }
     fn all_names(&self) -> &'static [&'static str] { &["River Surges in Sunlight", "river", "rss", "rsis"] }
 
-    fn get_power_cards(&self) -> Vec<PowerCardDescription> {
+    fn get_power_cards(&self, spirit_index: u8) -> Vec<PowerCardDescription> {
         vec![
             PowerCardDescription {
                 name: "Boon of Vigor",
-                kind: PowerCardKind::Spirit,
+                kind: PowerCardKind::Spirit(spirit_index),
                 speed: PowerSpeed::Fast,
+                elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Plant]),
 
                 effect: Box::new(NotImplementedEffect { what: "Boon of Vigor" }),
             },
             PowerCardDescription {
                 name: "River's Bounty",
-                kind: PowerCardKind::Spirit,
+                kind: PowerCardKind::Spirit(spirit_index),
                 speed: PowerSpeed::Fast,
+                elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Animal]),
 
                 effect: Box::new(NotImplementedEffect { what: "River's Bounty" }),
             },
             PowerCardDescription {
                 name: "Wash Away",
-                kind: PowerCardKind::Spirit,
+                kind: PowerCardKind::Spirit(spirit_index),
                 speed: PowerSpeed::Fast,
+                elements: ElementMap::from_slice(&[Element::Water, Element::Earth]),
 
                 effect: Box::new(NotImplementedEffect { what: "Wash Away" }),
             },
             PowerCardDescription {
                 name: "Flash Floods",
-                kind: PowerCardKind::Spirit,
+                kind: PowerCardKind::Spirit(spirit_index),
                 speed: PowerSpeed::Fast,
+                elements: ElementMap::from_slice(&[Element::Sun, Element::Water]),
 
                 effect: Box::new(NotImplementedEffect { what: "Boon of Vigor" }),
             },

@@ -166,27 +166,3 @@ impl Dahan {
         self.attack = 2;
     }
 }
-
-
-#[derive(Copy, Clone)]
-pub struct SpiritMap<T>( pub [T; 6] );
-
-impl<T> SpiritMap<T> {
-    pub fn new<F>(v: F) -> SpiritMap<T>
-        where F: Fn() -> T
-    {
-        SpiritMap( [v(),v(),v(),v(),v(),v()] )
-    }
-}
-
-impl<T> std::ops::Index<u8> for SpiritMap<T>  {
-    type Output = T;
-    fn index(&self, s: u8) -> &T {
-        &self.0[s as usize]
-    }
-}
-impl<T> std::ops::IndexMut<u8> for SpiritMap<T>  {
-    fn index_mut(&mut self, s: u8) -> &mut T {
-        &mut self.0[s as usize]
-    }
-}

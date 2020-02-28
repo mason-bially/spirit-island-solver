@@ -7,6 +7,7 @@ use std::{
 
 use super::{
     piece::*,
+    spirit::{SpiritMap},
     concept::{LandKind, ContentPack, search_for_board},
 };
 

@@ -11,6 +11,7 @@ use rand::prelude::*;
 use crate::base::{
     concept::{PowerSpeed},
     effect::{Effect},
+    spirit::{ElementMap}
 };
 
 
@@ -18,7 +19,7 @@ use crate::base::{
 pub enum PowerCardKind {
     Minor,
     Major,
-    Spirit,
+    Spirit(u8),
 }
 
 
@@ -27,6 +28,7 @@ pub struct PowerCardDescription {
     
     pub kind: PowerCardKind,
     pub speed: PowerSpeed,
+    pub elements: ElementMap<bool>,
 
     pub effect: Box<dyn Effect>,
 }

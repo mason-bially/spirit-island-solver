@@ -6,6 +6,7 @@ pub mod concept;
 pub mod deck;
 pub mod default_adversary;
 pub mod board;
+pub mod spirit;
 pub mod step;
 pub mod game;
 
@@ -17,5 +18,6 @@ pub use concept::*;
 pub use deck::*;
 pub use default_adversary::*;
 pub use board::*;
+pub use spirit::*;
 pub use step::*;
 pub use game::*;
