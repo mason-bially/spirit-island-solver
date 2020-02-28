@@ -15,7 +15,7 @@ pub struct GameDescription {
     pub spirits: Vec<Box<dyn SpiritDescription>>,
     pub table: Rc<TableDescription>,
 
-    pub fear: Rc<Vec<FearCardDescription>>,
+    pub fear: Vec<Rc<FearCardDescription>>,
 }
 
 impl GameDescription {
@@ -26,6 +26,7 @@ impl GameDescription {
         table: Box<TableDescription>,
     ) -> GameDescription {
         let fear_cards = join_fear_cards(&content);
+        let power_cards = join_power_cards(&content);
 
         GameDescription {
             content,
@@ -33,7 +34,7 @@ impl GameDescription {
             spirits,
             table: Rc::from(table),
 
-            fear: Rc::from(fear_cards),
+            fear: fear_cards.into_iter().map(Rc::from).collect(),
         }
     }
 }
@@ -269,20 +270,18 @@ impl GameState {
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_event()?))
                             }
                             InvaderStep::FearEffect(fear_card) => {
-                                let &card = self.fear.pending
+                                let card = self.fear.pending
                                     .get(*fear_card as usize).unwrap();
-                                let card_desc = desc.fear
-                                    .get(card.index).unwrap();
 
                                 let terror_level = self.fear.terror_level();
 
-                                self.log(format!("Fear Card ({}): {}", terror_level, card_desc.name));
+                                self.log(format!("Fear Card ({}): {}", terror_level, card.desc.name));
 
                                 self.do_effect_box(
                                     match terror_level {
-                                        TerrorLevel::I => card_desc.effect_1.clone(),
-                                        TerrorLevel::II => card_desc.effect_2.clone(),
-                                        TerrorLevel::III => card_desc.effect_3.clone(),
+                                        TerrorLevel::I => card.desc.effect_1.clone(),
+                                        TerrorLevel::II => card.desc.effect_2.clone(),
+                                        TerrorLevel::III => card.desc.effect_3.clone(),
                                     })?;
 
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_fear()?))

@@ -169,7 +169,7 @@ impl Dahan {
 
 
 #[derive(Copy, Clone)]
-pub struct SpiritMap<T>( [T; 6] );
+pub struct SpiritMap<T>( pub [T; 6] );
 
 impl<T> SpiritMap<T> {
     pub fn new<F>(v: F) -> SpiritMap<T>

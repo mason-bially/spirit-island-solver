@@ -1,6 +1,10 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
-use crate::base::{ContentPack, SpiritDescription, BoardDescription, FearCardDescription};
+use crate::base::{
+    ContentPack,
+    SpiritDescription, BoardDescription,
+    FearCardDescription, PowerCardDescription
+};
 
 mod spirit;
 mod board;
@@ -29,6 +33,10 @@ impl ContentPack for CoreContent {
 
     fn get_fear_cards(&self) -> Vec<FearCardDescription> {
         make_fear_cards()
+    }
+
+    fn get_power_cards(&self) -> Vec<PowerCardDescription> {
+        vec![]
     }
 }
 

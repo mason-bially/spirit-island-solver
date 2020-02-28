@@ -17,14 +17,16 @@ use crate::base::{
 #[derive(Clone)]
 pub struct FearCardDescription {
     pub name: &'static str,
+
     pub effect_1: Box<dyn Effect>,
     pub effect_2: Box<dyn Effect>,
     pub effect_3: Box<dyn Effect>,
 }
 
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct FearCard {
+    pub desc: Rc<FearCardDescription>,
     pub index: usize
 }
 
@@ -52,12 +54,12 @@ impl FearDeck {
     }
 
     pub fn init(&mut self, 
-            desc: &Rc<Vec<FearCardDescription>>,
+            desc: &Vec<Rc<FearCardDescription>>,
             mut rng: &mut dyn RngCore,
             fear_card_counts: (u8, u8, u8)) {
         let mut all_cards: Vec<FearCard> = desc.iter()
             .enumerate()
-            .map(|(i, _)| FearCard{ index: i })
+            .map(|(i, d)| FearCard{ desc: d.clone(), index: i })
             .collect();
         all_cards.shuffle(&mut rng);
 
@@ -92,10 +94,9 @@ impl FearDeck {
     }
 
     pub fn draw_into_pending(&mut self) {
-        let draw = self.draw(1);
-        let card = draw.first().unwrap();
+        let card = self.draw(1).pop().unwrap();
 
-        self.pending.push(*card);
+        self.pending.push(card);
     }
 
     pub fn advance(&mut self) {

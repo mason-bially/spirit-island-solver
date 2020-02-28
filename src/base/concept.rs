@@ -7,7 +7,8 @@ use std::{
 use super::board::{BoardDescription};
 use super::step::{StepFailure};
 use super::game::{GameState};
-use super::deck::{FearCardDescription};
+use super::deck::{FearCardDescription, PowerCardDescription};
+
 
 #[derive(Copy, Clone)]
 pub enum InvaderActionKind {
@@ -25,6 +26,7 @@ impl fmt::Display for InvaderActionKind {
        }
     }
 }
+
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum LandKind {
@@ -47,6 +49,7 @@ impl fmt::Display for LandKind {
     }
 }
 
+
 #[derive(Copy, Clone)]
 pub enum TerrorLevel {
     I,
@@ -65,16 +68,22 @@ impl fmt::Display for TerrorLevel {
 }
 
 
+#[derive(Copy, Clone)]
+pub enum PowerSpeed {
+    Fast,
+    Slow
+}
+
+
 pub trait SpiritDescription {
     fn name(&self) -> &'static str;
     fn all_names(&self) -> &'static [&'static str];
 
+    fn get_power_cards(&self) -> Vec<PowerCardDescription>;
+
     fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 }
 
-pub trait PowerCardDescription {
-
-}
 
 pub trait EventCardDescription {
 
@@ -92,6 +101,8 @@ pub trait ContentPack {
     fn get_boards(&self) -> Vec<BoardDescription>;
 
     fn get_fear_cards(&self) -> Vec<FearCardDescription>;
+
+    fn get_power_cards(&self) -> Vec<PowerCardDescription>;
 }
 
 
@@ -128,6 +139,16 @@ pub fn join_fear_cards(content: &Vec<Box<dyn ContentPack>>) -> Vec<FearCardDescr
     let mut result = Vec::new();
     for c in content.iter() {
         result.extend(c.get_fear_cards());
+    }
+    
+    result
+}
+
+pub fn join_power_cards(content: &Vec<Box<dyn ContentPack>>) -> Vec<PowerCardDescription>
+{
+    let mut result = Vec::new();
+    for c in content.iter() {
+        result.extend(c.get_power_cards());
     }
     
     result

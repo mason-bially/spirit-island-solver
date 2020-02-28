@@ -10,7 +10,9 @@
 
 mod invader;
 mod fear;
+mod power;
 
 pub use self::invader::*;
 pub use self::fear::*;
+pub use self::power::*;
 
