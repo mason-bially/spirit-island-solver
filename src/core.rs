@@ -9,10 +9,12 @@ use crate::base::{
 mod spirit;
 mod board;
 mod fear;
+mod power;
 
 pub use spirit::{SpiritDescriptionRiver};
 use board::{make_board_a};
 use fear::{make_fear_cards};
+use power::{make_minor_power_cards, make_major_power_cards};
 
 pub struct CoreContent {
 
@@ -36,7 +38,11 @@ impl ContentPack for CoreContent {
     }
 
     fn get_power_cards(&self) -> Vec<PowerCardDescription> {
-        vec![]
+        let mut res = Vec::new();
+        res.extend(make_minor_power_cards());
+        res.extend(make_major_power_cards());
+
+        res
     }
 }
 

@@ -12,7 +12,8 @@ pub struct SpiritDescriptionRiver {
 
 }
 
-fn card_boon_of_vigor (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+fn card_boon_of_vigor (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
+    let usage = game.get_power_usage()?;
     if let PowerTarget::Spirit(dst_spirit_index) = usage.target {
         let energy 
             = if dst_spirit_index == usage.using_spirit_index {
@@ -28,7 +29,8 @@ fn card_boon_of_vigor (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Ef
     }
 }
 
-fn card_flash_floods (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+fn card_flash_floods (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
+    let usage = game.get_power_usage()?;
     if let PowerTarget::Land(land_index) = usage.target {
         let land = game.get_land_desc(land_index)?;
         
@@ -44,11 +46,11 @@ fn card_flash_floods (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Eff
     }
 }
 
-fn card_rivers_bounty (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+fn card_rivers_bounty (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
     Ok(Box::new(NotImplementedEffect { what: "River's Bounty" }))
 }
 
-fn card_wash_away (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+fn card_wash_away (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
     Ok(Box::new(NotImplementedEffect { what: "Wash Away" }))
 }
 

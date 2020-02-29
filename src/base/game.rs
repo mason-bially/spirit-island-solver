@@ -59,6 +59,7 @@ pub struct GameState {
 
     pub choices: VecDeque<DecisionChoice>,
     pub effect_stack: Vec<Box<dyn Effect>>,
+    pub power_usages: Vec<PowerUsage>,
 
     pub table: TableState,
 
@@ -94,6 +95,7 @@ impl GameState {
 
             choices: VecDeque::new(),
             effect_stack: Vec::new(),
+            power_usages: Vec::new(),
 
             table: TableState::new(desc.table.clone()),
 
@@ -129,6 +131,7 @@ impl GameState {
         println!("   |{}- {}", "  ".repeat(self.effect_stack.len() + 1), s);
     }
 
+
     pub fn get_land(&self, land_index: u8) -> Result<&LandState, StepFailure> {
         self.table.lands
             .get(land_index as usize)
@@ -158,6 +161,11 @@ impl GameState {
     pub fn get_spirit_desc(&self, spirit_index: u8) -> Result<&Box<dyn SpiritDescription>, StepFailure> {
         self.desc.spirits.get(spirit_index as usize)
             .ok_or(StepFailure::InternalError("index out of range".to_string()))
+    }
+
+    pub fn get_power_usage(&self) -> Result<&PowerUsage, StepFailure> {
+        self.power_usages.last()
+            .ok_or(StepFailure::InternalError("no current power usage".to_string()))
     }
 
 

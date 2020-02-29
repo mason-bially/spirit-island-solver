@@ -12,7 +12,7 @@ use crate::base::{
     board::{LandState},
     concept::{PowerSpeed},
     effect::{Effect},
-    spirit::{ElementMap},
+    spirit::{ElementMap, SpiritState},
 
     step::{StepFailure},
     game::{GameState},
@@ -28,7 +28,7 @@ pub enum PowerCardKind {
 
 pub enum PowerTargetFilter {
     None,
-    Spirit(fn (u8) -> bool), // TODO borrow of spirit state
+    Spirit(fn(&SpiritState) -> bool),
     Land(fn(&LandState) -> bool),
 }
 
@@ -56,7 +56,7 @@ pub struct PowerCardDescription {
     pub range: Option<u8>,
     pub target_filter: PowerTargetFilter,
 
-    pub effect_builder: fn (&GameState, PowerUsage) -> Result<Box<dyn Effect>, StepFailure>,
+    pub effect_builder: fn (&GameState) -> Result<Box<dyn Effect>, StepFailure>,
 }
 
 
