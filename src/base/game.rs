@@ -129,6 +129,45 @@ impl GameState {
         println!("   |{}- {}", "  ".repeat(self.effect_stack.len() + 1), s);
     }
 
+    pub fn get_land(&self, land_index: u8) -> Result<&LandState, StepFailure> {
+        self.table.lands
+            .get(land_index as usize)
+            .ok_or(StepFailure::InternalError("index out of range".to_string()))
+    }
+    pub fn get_land_mut(&mut self, land_index: u8) -> Result<&mut LandState, StepFailure> {
+        self.table.lands
+            .get_mut(land_index as usize)
+            .ok_or(StepFailure::InternalError("index out of range".to_string()))
+    }
+    pub fn get_land_desc(&self, land_index: u8) -> Result<Rc<LandDescription>, StepFailure> {
+        Ok(Rc::clone(
+            self.desc.table.lands
+                .get(land_index as usize)
+                .ok_or(StepFailure::InternalError("index out of range".to_string()))?
+            ))
+    }
+
+    pub fn get_spirit(&self, spirit_index: u8) -> Result<&SpiritState, StepFailure> {
+        self.spirits.get(spirit_index as usize)
+            .ok_or(StepFailure::InternalError("index out of range".to_string()))
+    }
+    pub fn get_spirit_mut(&mut self, spirit_index: u8) -> Result<&mut SpiritState, StepFailure> {
+        self.spirits.get_mut(spirit_index as usize)
+            .ok_or(StepFailure::InternalError("index out of range".to_string()))
+    }
+    pub fn get_spirit_desc(&self, spirit_index: u8) -> Result<&Box<dyn SpiritDescription>, StepFailure> {
+        self.desc.spirits.get(spirit_index as usize)
+            .ok_or(StepFailure::InternalError("index out of range".to_string()))
+    }
+
+
+    pub fn consume_choice(&mut self) -> Result<DecisionChoice, StepFailure> {
+        match self.choices.pop_front() {
+            Some(v) => Ok(v),
+            None => Err(StepFailure::DecisionRequired)
+        }
+    }
+
     pub fn do_effect_box(&mut self, effect: Box<dyn Effect>) -> Result<(), StepFailure> {
         self.effect_stack.push(effect.box_clone());
         let res = effect.apply_effect(self)?;
@@ -139,13 +178,6 @@ impl GameState {
 
     pub fn do_effect<T : Effect>(&mut self, effect: T) -> Result<(), StepFailure> {
         self.do_effect_box(effect.box_clone())
-    }
-
-    pub fn consume_choice(&mut self) -> Result<DecisionChoice, StepFailure> {
-        match self.choices.pop_front() {
-            Some(v) => Ok(v),
-            None => Err(StepFailure::DecisionRequired)
-        }
     }
 
     pub fn do_defeat(&mut self, defeat_reason: &str) -> Result<(), StepFailure> {

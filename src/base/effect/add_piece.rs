@@ -24,7 +24,7 @@ impl Effect for AddBlightEffect {
         game.blight_remaining -= 1;
 
         // 2. Add blight to the land
-        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+        let land = game.get_land_mut(self.land_index)?;
         land.tokens[TokenKind::Blight] += 1;
 
         // 3. Kill presence
@@ -58,7 +58,7 @@ impl Effect for AddPresenceEffect {
         //   this is just about actually adding it to the board.
 
         // 1. Add presence to the land
-        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+        let land = game.get_land_mut(self.land_index)?;
         land.presence[self.spirit] += self.count;
         
         Ok(())
@@ -80,7 +80,7 @@ impl Effect for AddInvaderEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("adding {} {} invader(s) to {}.", self.count, self.kind, self.land_index));
 
-        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+        let land = game.get_land_mut(self.land_index)?;
 
         // 1. Add the invaders
         for _ in 0..self.count {
@@ -105,7 +105,7 @@ impl Effect for AddDahanEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("adding {} dahan to {}.", self.count, self.land_index));
 
-        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+        let land = game.get_land_mut(self.land_index)?;
 
         // 1. Add the invaders
         for _ in 0..self.count {

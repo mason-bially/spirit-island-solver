@@ -17,7 +17,7 @@ impl Effect for PersistDefenseEffect {
         game.log(format!("defending {} in land {}.", self.defense, self.land_index));
 
         // 1. Add defense to the land
-        let land = &mut game.table.lands[self.land_index as usize];
+        let land = game.get_land_mut(self.land_index)?;
         land.defense += self.defense;
         
         Ok(())

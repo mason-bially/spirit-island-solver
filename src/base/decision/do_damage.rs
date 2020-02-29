@@ -45,7 +45,7 @@ impl Effect for DoDamageToDahanDecision {
             game.log(format!("{} damage to dahan in {}.", self.damage, self.land_index));
         }
 
-        let dahan = game.table.lands[self.land_index as usize].dahan.clone();
+        let dahan = game.get_land(self.land_index)?.dahan.clone();
 
         // 1. Sanity check
         if dahan.len() == 0 {
@@ -68,7 +68,7 @@ impl Effect for DoDamageToDahanDecision {
         let mut destroyed_dahan: Vec<usize> = Vec::new();
         let mut damage_remaining = self.damage;
         {
-            let dahan = &mut game.table.lands[self.land_index as usize].dahan;
+            let dahan = &mut game.get_land_mut(self.land_index)?.dahan;
             
             for dahan_index in 0..dahan.len() {
                 let damage_to_do = damage_layout[dahan_index] as u8;
@@ -112,8 +112,16 @@ impl Effect for DoDamageToDahanDecision {
 impl Decision for DoDamageToDahanDecision {
     fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
         vec![
-            // TODO, this is litterally the worst choice:
-            DecisionChoice::Damage(allocate_efficent_damage(self.damage, game.table.lands.get(self.land_index as usize).unwrap().dahan.iter().map(|d| d.health_cur).collect()))
+            // TODO, resultify
+            // TODO, this is literaly the worst choice:
+            DecisionChoice::Damage(
+                allocate_efficent_damage(
+                    self.damage,
+                    game.get_land(self.land_index).ok().unwrap()
+                        .dahan.iter()
+                        .map(|d| d.health_cur)
+                        .collect()
+                    ))
         ]
     }
 }
@@ -129,7 +137,7 @@ impl Effect for DoDamageToInvadersDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("{} damage to invaders in {}.", self.damage, self.land_index));
 
-        let invaders = game.table.lands[self.land_index as usize].invaders.clone();
+        let invaders = game.get_land(self.land_index)?.invaders.clone();
 
         // 1. Sanity check
         if invaders.len() == 0 {
@@ -149,7 +157,7 @@ impl Effect for DoDamageToInvadersDecision {
         let mut destroyed_invaders: Vec<usize> = Vec::new();
         let mut damage_remaining = self.damage;
         {
-            let invaders = &mut game.table.lands[self.land_index as usize].invaders;
+            let invaders = &mut game.get_land_mut(self.land_index)?.invaders;
             
             for invader_index in 0..invaders.len() {
                 let damage_to_do = damage_layout[invader_index] as u8;
@@ -193,8 +201,16 @@ impl Effect for DoDamageToInvadersDecision {
 impl Decision for DoDamageToInvadersDecision {
     fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
         vec![
+            // TODO, resultify
             // TODO, kinda a good choice
-            DecisionChoice::Damage(allocate_efficent_damage(self.damage, game.table.lands.get(self.land_index as usize).unwrap().invaders.iter().map(|d| d.health_cur).collect()))
+            DecisionChoice::Damage(
+                allocate_efficent_damage(
+                    self.damage,
+                    game.get_land(self.land_index).ok().unwrap()
+                        .invaders.iter()
+                        .map(|d| d.health_cur)
+                        .collect()
+                    ))
         ]
     }
 }

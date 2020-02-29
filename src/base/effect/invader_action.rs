@@ -17,7 +17,9 @@ impl Effect for ExploreEffect {
 
         let adj_lands = game.table.desc.lands_adjacent(self.land_index);
         let will_explore = adj_lands.iter().any(|l|
-            game.table.lands.get(l.index_on_table as usize).unwrap().invaders.iter().any(|i| i.is_building())
+            game.get_land(l.index_on_table).ok().unwrap()
+                .invaders.iter()
+                .any(|i| i.is_building())
         );
 
         if will_explore {
@@ -45,7 +47,7 @@ impl Effect for BuildEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Building in land {}.", self.land_index));
 
-        let land = game.table.lands.get(self.land_index as usize).unwrap();
+        let land = game.get_land(self.land_index)?;
 
         if land.invaders.len() != 0 {
             let building_type_distance : i8 = land.invaders.iter().map(|i|
@@ -79,7 +81,7 @@ impl Effect for RavageEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Ravaging in land {}.", self.land_index));
 
-        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+        let land = game.get_land(self.land_index)?;
 
         if land.invaders.len() != 0 {
             // 1. Invaders to damage

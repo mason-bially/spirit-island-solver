@@ -2,9 +2,9 @@
 
 use crate::base::{
     GameState, StepFailure, SpiritDescription,
-    LandKind, PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
+    LandKind, PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, PowerUsage, Element, ElementMap,
     PowerCardDescription,
-    effect::*
+    effect::*, decision::*,
 };
 
 
@@ -12,20 +12,44 @@ pub struct SpiritDescriptionRiver {
 
 }
 
-fn card_boon_of_vigor (target: &PowerTarget) -> Box<dyn Effect> {
-    Box::new(NotImplementedEffect { what: "Boon of Vigor" })
+fn card_boon_of_vigor (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+    if let PowerTarget::Spirit(dst_spirit_index) = usage.target {
+        let energy 
+            = if dst_spirit_index == usage.using_spirit_index {
+                1
+            } else {
+                let spirit = game.get_spirit(dst_spirit_index)?;
+                spirit.deck.pending.len() as u8
+            };
+
+        Ok(Box::new(GenerateEnergyEffect{spirit_index: dst_spirit_index, energy}))
+    } else {
+        Err(StepFailure::RulesViolation("Power must target a spirit.".to_string()))
+    }
 }
 
-fn card_rivers_bounty (target: &PowerTarget) -> Box<dyn Effect> {
-    Box::new(NotImplementedEffect { what: "River's Bounty" })
+fn card_flash_floods (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+    if let PowerTarget::Land(land_index) = usage.target {
+        let land = game.get_land_desc(land_index)?;
+        
+        let mut damage = 1;
+        
+        if land.is_coastal {
+            damage += 1;
+        }
+
+        Ok(Box::new(DoDamageToInvadersDecision{land_index: land_index, damage}))
+    } else {
+        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+    }
 }
 
-fn card_wash_away (target: &PowerTarget) -> Box<dyn Effect> {
-    Box::new(NotImplementedEffect { what: "Wash Away" })
+fn card_rivers_bounty (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+    Ok(Box::new(NotImplementedEffect { what: "River's Bounty" }))
 }
 
-fn card_flash_floods (target: &PowerTarget) -> Box<dyn Effect> {
-    Box::new(NotImplementedEffect { what: "Flash Floods" })
+fn card_wash_away (game: &GameState, usage: PowerUsage) -> Result<Box<dyn Effect>, StepFailure> {
+    Ok(Box::new(NotImplementedEffect { what: "Wash Away" }))
 }
 
 impl SpiritDescription for SpiritDescriptionRiver {
@@ -44,6 +68,15 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 effect_builder: card_boon_of_vigor
             },
             PowerCardDescription {
+                name: "Flash Floods",
+                kind: PowerCardKind::Spirit(spirit_index),
+                elements: ElementMap::from_slice(&[Element::Sun, Element::Water]),
+                cost: 1, speed: PowerSpeed::Fast, range: Some(1),
+                target_filter: PowerTargetFilter::Land(|_| true),
+
+                effect_builder: card_flash_floods,
+            },
+            PowerCardDescription {
                 name: "River's Bounty",
                 kind: PowerCardKind::Spirit(spirit_index),
                 elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Animal]),
@@ -60,15 +93,6 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 target_filter: PowerTargetFilter::Land(|_| true),
 
                 effect_builder: card_wash_away,
-            },
-            PowerCardDescription {
-                name: "Flash Floods",
-                kind: PowerCardKind::Spirit(spirit_index),
-                elements: ElementMap::from_slice(&[Element::Sun, Element::Water]),
-                cost: 1, speed: PowerSpeed::Fast, range: Some(1),
-                target_filter: PowerTargetFilter::Land(|_| true),
-
-                effect_builder: card_flash_floods,
             },
         ]
     }

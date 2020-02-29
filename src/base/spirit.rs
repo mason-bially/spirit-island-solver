@@ -145,6 +145,8 @@ pub struct SpiritState {
 
     pub presence: [PresenceState; 13],
     pub deck: SpiritPowerDeck,
+
+    pub energy: u8,
 }
 
 impl SpiritState {
@@ -154,6 +156,8 @@ impl SpiritState {
 
             presence: [PresenceState::RemovedFromGame; 13],
             deck: SpiritPowerDeck::new(),
+
+            energy: 0,
         }
     }
 

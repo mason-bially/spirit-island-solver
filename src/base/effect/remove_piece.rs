@@ -22,7 +22,7 @@ impl Effect for RemoveDahanEffect {
             game.log(format!("removing dahan {} in {}.", self.dahan_index, self.land_index));
         }
 
-        let land = game.table.lands.get_mut(self.land_index as usize).unwrap();
+        let land = game.get_land_mut(self.land_index)?;
 
         // 1. Remove the dahan
         if !self.dahan_index < land.dahan.len() {
@@ -58,7 +58,7 @@ impl Effect for RemoveInvaderEffect {
             game.log(format!("removing invader {} in {}.", self.invader_index, self.land_index));
         }
 
-        let land = &mut game.table.lands[self.land_index as usize];
+        let land = game.get_land_mut(self.land_index)?;
 
         // 1. Remove the dahan
         if !self.invader_index < land.invaders.len() {
