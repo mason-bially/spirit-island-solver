@@ -70,6 +70,8 @@ pub struct GameState {
 
     pub blight_remaining: u8,
 
+    pub spirits: Vec<SpiritState>,
+
     /*
     fears: SimpleDeck<Box<dyn Fear>>,
     fears_pending: Vec<Box<dyn Fear>>,
@@ -102,6 +104,8 @@ impl GameState {
             fear_generated: 0,
 
             blight_remaining: 5,
+
+            spirits: Vec::new(),
 
             /*
 

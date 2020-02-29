@@ -2,7 +2,7 @@
 
 use crate::base::{
     GameState, StepFailure, SpiritDescription,
-    LandKind, PowerCardKind, PowerSpeed, Element, ElementMap,
+    LandKind, PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
     PowerCardDescription,
     effect::*
 };
@@ -10,6 +10,22 @@ use crate::base::{
 
 pub struct SpiritDescriptionRiver {
 
+}
+
+fn card_boon_of_vigor (target: &PowerTarget) -> Box<dyn Effect> {
+    Box::new(NotImplementedEffect { what: "Boon of Vigor" })
+}
+
+fn card_rivers_bounty (target: &PowerTarget) -> Box<dyn Effect> {
+    Box::new(NotImplementedEffect { what: "River's Bounty" })
+}
+
+fn card_wash_away (target: &PowerTarget) -> Box<dyn Effect> {
+    Box::new(NotImplementedEffect { what: "Wash Away" })
+}
+
+fn card_flash_floods (target: &PowerTarget) -> Box<dyn Effect> {
+    Box::new(NotImplementedEffect { what: "Flash Floods" })
 }
 
 impl SpiritDescription for SpiritDescriptionRiver {
@@ -21,34 +37,38 @@ impl SpiritDescription for SpiritDescriptionRiver {
             PowerCardDescription {
                 name: "Boon of Vigor",
                 kind: PowerCardKind::Spirit(spirit_index),
-                speed: PowerSpeed::Fast,
                 elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Plant]),
+                cost: 0, speed: PowerSpeed::Fast, range: None,
+                target_filter: PowerTargetFilter::Spirit(|_| true),
 
-                effect: Box::new(NotImplementedEffect { what: "Boon of Vigor" }),
+                effect_builder: card_boon_of_vigor
             },
             PowerCardDescription {
                 name: "River's Bounty",
                 kind: PowerCardKind::Spirit(spirit_index),
-                speed: PowerSpeed::Fast,
                 elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Animal]),
+                cost: 0, speed: PowerSpeed::Slow, range: Some(0),
+                target_filter: PowerTargetFilter::Land(|_| true),
 
-                effect: Box::new(NotImplementedEffect { what: "River's Bounty" }),
+                effect_builder: card_rivers_bounty,
             },
             PowerCardDescription {
                 name: "Wash Away",
                 kind: PowerCardKind::Spirit(spirit_index),
-                speed: PowerSpeed::Fast,
                 elements: ElementMap::from_slice(&[Element::Water, Element::Earth]),
+                cost: 1, speed: PowerSpeed::Slow, range: Some(1),
+                target_filter: PowerTargetFilter::Land(|_| true),
 
-                effect: Box::new(NotImplementedEffect { what: "Wash Away" }),
+                effect_builder: card_wash_away,
             },
             PowerCardDescription {
                 name: "Flash Floods",
                 kind: PowerCardKind::Spirit(spirit_index),
-                speed: PowerSpeed::Fast,
                 elements: ElementMap::from_slice(&[Element::Sun, Element::Water]),
+                cost: 1, speed: PowerSpeed::Fast, range: Some(1),
+                target_filter: PowerTargetFilter::Land(|_| true),
 
-                effect: Box::new(NotImplementedEffect { what: "Boon of Vigor" }),
+                effect_builder: card_flash_floods,
             },
         ]
     }

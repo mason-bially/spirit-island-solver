@@ -4,10 +4,12 @@ use std::{
     iter::*,
 };
 
-use super::board::{BoardDescription};
-use super::step::{StepFailure};
-use super::game::{GameState};
-use super::deck::{FearCardDescription, PowerCardDescription};
+use super::{
+    board::{BoardDescription},
+    deck::{FearCardDescription, PowerCardDescription},
+    spirit::{SpiritDescription},
+    game::{GameState},
+};
 
 
 #[derive(Copy, Clone)]
@@ -72,16 +74,6 @@ impl fmt::Display for TerrorLevel {
 pub enum PowerSpeed {
     Fast,
     Slow
-}
-
-
-pub trait SpiritDescription {
-    fn name(&self) -> &'static str;
-    fn all_names(&self) -> &'static [&'static str];
-
-    fn get_power_cards(&self, spirit_index: u8) -> Vec<PowerCardDescription>;
-
-    fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 }
 
 

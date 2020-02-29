@@ -9,9 +9,10 @@ use std::{
 use rand::prelude::*;
 
 use crate::base::{
+    board::{LandState},
     concept::{PowerSpeed},
     effect::{Effect},
-    spirit::{ElementMap}
+    spirit::{ElementMap, SpiritState},
 };
 
 
@@ -22,15 +23,29 @@ pub enum PowerCardKind {
     Spirit(u8),
 }
 
+pub enum PowerTargetFilter {
+    None,
+    Spirit(fn (u8) -> bool), // TODO borrow of spirit state
+    Land(fn(&LandState) -> bool),
+}
+
+pub enum PowerTarget<'a> {
+    Spirit(&'a SpiritState),
+    Land(&'a LandState),
+}
 
 pub struct PowerCardDescription {
     pub name: &'static str,
     
     pub kind: PowerCardKind,
-    pub speed: PowerSpeed,
     pub elements: ElementMap<bool>,
 
-    pub effect: Box<dyn Effect>,
+    pub cost: u8,
+    pub speed: PowerSpeed,
+    pub range: Option<u8>,
+    pub target_filter: PowerTargetFilter,
+
+    pub effect_builder: fn (&PowerTarget) -> Box<dyn Effect>,
 }
 
 
@@ -77,10 +92,22 @@ impl PowerDeck {
 
 
 #[derive(Clone)]
-pub struct PowerSpiritDeck {
+pub struct SpiritPowerDeck {
     pub draw: Vec<PowerCard>,
     pub hand: Vec<PowerCard>,
     pub pending: Vec<PowerCard>,
     pub discard: Vec<PowerCard>,
     pub forgotten: Vec<PowerCard>,
+}
+
+impl SpiritPowerDeck {
+    pub fn new() -> SpiritPowerDeck {
+        SpiritPowerDeck {
+            draw: Vec::new(),
+            hand: Vec::new(),
+            pending: Vec::new(),
+            discard: Vec::new(),
+            forgotten: Vec::new(),
+        }
+    }
 }

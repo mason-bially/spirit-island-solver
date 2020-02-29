@@ -1,7 +1,14 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
+    rc::Rc,
     fmt,
+};
+
+use super::{
+    deck::{PowerCardDescription, SpiritPowerDeck},
+    step::{StepFailure},
+    game::{GameState},
 };
 
 
@@ -85,6 +92,21 @@ impl ElementMap<bool> {
     }
 }
 
+impl fmt::Display for ElementMap<bool> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.0[Element::Sun as usize] { write!(f, "{}", Element::Sun)?; } else { write!(f, " ")?; }
+        if self.0[Element::Moon as usize] { write!(f, "{}", Element::Moon)?; } else { write!(f, " ")?; }
+        if self.0[Element::Fire as usize] { write!(f, "{}", Element::Fire)?; } else { write!(f, " ")?; }
+        if self.0[Element::Air as usize] { write!(f, "{}", Element::Air)?; } else { write!(f, " ")?; }
+        if self.0[Element::Water as usize] { write!(f, "{}", Element::Water)?; } else { write!(f, " ")?; }
+        if self.0[Element::Earth as usize] { write!(f, "{}", Element::Earth)?; } else { write!(f, " ")?; }
+        if self.0[Element::Plant as usize] { write!(f, "{}", Element::Plant)?; } else { write!(f, " ")?; }
+        if self.0[Element::Animal as usize] { write!(f, "{}", Element::Animal)?; } else { write!(f, " ")?; }
+
+        Ok(())
+    }
+}
+
 impl<T> std::ops::Index<Element> for ElementMap<T>  {
     type Output = T;
     fn index(&self, s: Element) -> &T {
@@ -94,5 +116,48 @@ impl<T> std::ops::Index<Element> for ElementMap<T>  {
 impl<T> std::ops::IndexMut<Element> for ElementMap<T>  {
     fn index_mut(&mut self, s: Element) -> &mut T {
         &mut self.0[s as usize]
+    }
+}
+
+
+
+pub trait SpiritDescription {
+    fn name(&self) -> &'static str;
+    fn all_names(&self) -> &'static [&'static str];
+
+    fn get_power_cards(&self, spirit_index: u8) -> Vec<PowerCardDescription>;
+
+    fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
+}
+
+#[derive(Copy, Clone)]
+pub enum PresenceState {
+    OnBoard(u8),
+    OnTrack(u8),
+    Destroyed,
+    RemovedFromGame,
+}
+
+
+#[derive(Clone)]
+pub struct SpiritState {
+    pub desc: Rc<Box<dyn SpiritDescription>>,
+
+    pub presence: [PresenceState; 13],
+    pub deck: SpiritPowerDeck,
+}
+
+impl SpiritState {
+    pub fn new(desc: &Rc<Box<dyn SpiritDescription>>) -> SpiritState {
+        SpiritState {
+            desc: Rc::clone(desc),
+
+            presence: [PresenceState::RemovedFromGame; 13],
+            deck: SpiritPowerDeck::new(),
+        }
+    }
+
+    pub fn init() {
+        
     }
 }
