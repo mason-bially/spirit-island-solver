@@ -8,8 +8,7 @@ use super::*;
 
 #[derive(Clone)]
 pub struct AddBlightEffect {
-    pub land_index: u8,
-    pub count: u8,
+    pub land_index: u8
 }
 
 impl Effect for AddBlightEffect {

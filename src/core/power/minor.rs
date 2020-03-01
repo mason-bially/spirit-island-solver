@@ -37,11 +37,32 @@ fn card_call_to_isolation (game: &mut GameState) -> Result<(), StepFailure> {
 }
 
 fn card_call_to_migrate (game: &mut GameState) -> Result<(), StepFailure> {
-    game.do_effect(NotImplementedEffect { what: "Call to Migrate" })
+    let land_index = game.get_power_usage()?.target_land()?;
+
+    game.do_effect(GatherDecision{land_index, count: 3, may: true,
+        kinds: vec![PieceKind::Dahan]})?;
+    game.do_effect(PushDecision{land_index, count: 3, may: true,
+        kinds: vec![PieceKind::Dahan]})?;
+
+    Ok(())
 }
 
 fn card_call_to_tend (game: &mut GameState) -> Result<(), StepFailure> {
-    game.do_effect(NotImplementedEffect { what: "Call to Tend" })
+    game.do_effect(ChooseEffectDecision{
+        choices: vec![
+            |game| {
+                let land_index = game.get_power_usage()?.target_land()?;
+                // remove 1 blight
+                game.do_effect(RemoveBlightEffect{land_index, count: 1})
+            },
+            |game| {
+                let land_index = game.get_power_usage()?.target_land()?;
+                // push up to 3 dahan
+                game.do_effect(PushDecision{land_index, count: 3, may: true,
+                    kinds: vec![PieceKind::Dahan]})
+            }
+        ]
+    })
 }
 
 fn card_dark_and_tangled_woods (game: &mut GameState) -> Result<(), StepFailure> {
@@ -60,11 +81,37 @@ fn card_dark_and_tangled_woods (game: &mut GameState) -> Result<(), StepFailure>
 }
 
 fn card_delusions_of_danger (game: &mut GameState) -> Result<(), StepFailure> {
-    game.do_effect(NotImplementedEffect { what: "Delusions of Danger" })
+    game.do_effect(ChooseEffectDecision{
+        choices: vec![
+            |game| {
+                let land_index = game.get_power_usage()?.target_land()?;
+                // push 1 explorer
+                game.do_effect(PushDecision{land_index, count: 1, may: true,
+                    kinds: vec![PieceKind::Invader(InvaderKind::Explorer)]})
+            },
+            |game| {
+                let land_index = game.get_power_usage()?.target_land()?;
+                // 2 fear
+                game.do_effect(GenerateFearEffect{fear: 2, land_index: Some(land_index)})
+            }
+        ]
+    })
 }
 
 fn card_devouring_ants (game: &mut GameState) -> Result<(), StepFailure> {
-    game.do_effect(NotImplementedEffect { what: "Devouring Ants" })
+    let land_index = game.get_power_usage()?.target_land()?;
+
+    game.do_effect(GenerateFearEffect{fear: 1, land_index: Some(land_index)})?;
+
+    let mut damage = 1;
+    // +1 damage
+    let land = game.get_land_desc(land_index)?;
+    if land.kind == LandKind::Jungle || land.kind == LandKind::Sands {
+        damage += 1;
+    }
+    game.do_effect(DoDamageToInvadersDecision{land_index, damage})?;
+
+    game.do_effect(NotImplementedEffect { what: "Devouring Ants Destroy Dahan" })
 }
 
 fn card_drift_down_into_slumber (game: &mut GameState) -> Result<(), StepFailure> {

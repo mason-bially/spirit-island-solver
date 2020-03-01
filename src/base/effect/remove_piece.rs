@@ -1,9 +1,36 @@
 
 use std::{
-    any::Any
+    any::Any,
+    cmp::*,
 };
 
 use super::*;
+
+
+#[derive(Clone)]
+pub struct RemoveBlightEffect {
+    pub land_index: u8,
+    pub count: u8,
+}
+
+impl Effect for RemoveBlightEffect {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        game.log(format!("removing {} blight from land {}.", self.count, self.land_index));
+
+        // 1. Remove blight from land
+        let land = game.get_land_mut(self.land_index)?;
+        let blight_removed = min(self.count, land.tokens[TokenKind::Blight]);
+        land.tokens[TokenKind::Blight] -= blight_removed;
+
+        // 2. Add blight to the land
+        game.blight_remaining += blight_removed;
+
+        Ok(())
+    }
+
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
+}
 
 
 

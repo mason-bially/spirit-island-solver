@@ -30,7 +30,7 @@ impl Effect for CascadeBlightDecision {
 
         game.log(format!("cascading blight to: {}", dst_land_index));
 
-        game.do_effect(AddBlightEffect{ land_index: dst_land_index, count: 1 })?;
+        game.do_effect(AddBlightEffect{ land_index: dst_land_index })?;
         
         Ok(())
     }

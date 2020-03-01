@@ -41,5 +41,5 @@ pub use self::growth::{GenerateEnergyEffect};
 pub use self::invader_action::{ExploreEffect, BuildEffect, RavageEffect};
 pub use self::meta::{NotImplementedEffect, ForAllLandsDoEffect};
 pub use self::persist::{PersistDefenseEffect};
-pub use self::remove_piece::{RemoveDahanEffect, RemoveInvaderEffect};
+pub use self::remove_piece::{RemoveBlightEffect, RemoveDahanEffect, RemoveInvaderEffect};
 

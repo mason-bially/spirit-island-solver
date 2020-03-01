@@ -20,7 +20,7 @@ impl Effect for DoDamageToLandEffect {
         let blight_threshold = 2;
 
         if self.damage >= blight_threshold {
-            game.do_effect(AddBlightEffect { land_index: self.land_index, count: 1 })?;
+            game.do_effect(AddBlightEffect { land_index: self.land_index })?;
         }
 
         Ok(())
