@@ -13,7 +13,7 @@ use rand::prelude::*;
 use crate::base::{
     board::{LandState},
     concept::{PowerSpeed},
-    effect::{Effect},
+    effect::{Effect, SubEffect},
     spirit::{ElementMap, SpiritState},
 
     step::{StepFailure},
@@ -58,6 +58,22 @@ pub struct PowerUsage {
     pub src_land_index: Option<u8>,
 }
 
+impl PowerUsage {
+    pub fn target_land(&self) -> Result<u8, StepFailure> {
+        match self.target {
+            PowerTarget::Land(land_index) => Ok(land_index),
+            _ => Err(StepFailure::RulesViolation("Power must target a land.".to_string())),
+        }
+    }
+    pub fn target_spirit(&self) -> Result<u8, StepFailure> {
+        match self.target {
+            PowerTarget::Spirit(spirit_index) => Ok(spirit_index),
+            _ => Err(StepFailure::RulesViolation("Power must target a spirit.".to_string())),
+        }
+    }
+}
+
+
 #[derive(Clone)]
 pub struct PowerCardDescription {
     pub name: &'static str,
@@ -70,7 +86,7 @@ pub struct PowerCardDescription {
     pub range: Option<u8>,
     pub target_filter: PowerTargetFilter,
 
-    pub effect: fn (&mut GameState) -> Result<(), StepFailure>,
+    pub effect: SubEffect,
 }
 
 impl fmt::Display for PowerCardDescription {

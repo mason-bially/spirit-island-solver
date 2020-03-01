@@ -41,7 +41,7 @@ fn card_flash_floods (game: &mut GameState) -> Result<(), StepFailure> {
             damage += 1;
         }
 
-        game.do_effect(DoDamageToInvadersDecision{land_index: land_index, damage})
+        game.do_effect(DoDamageToInvadersDecision{land_index, damage})
     } else {
         Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
     }
@@ -49,26 +49,25 @@ fn card_flash_floods (game: &mut GameState) -> Result<(), StepFailure> {
 
 fn card_rivers_bounty (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = *game.get_power_usage()?;
-    if let PowerTarget::Land(land_index) = usage.target {
-        // Gather up to 2 dahan
-        game.do_effect(GatherDecision{land_index: land_index, count: 2, may: true,
-            kinds: vec![PieceKind::Dahan]})?;
+    let land_index = usage.target_land()?;
 
-        if game.get_land(land_index)?.dahan.len() >= 2 {
-            game.do_effect(AddDahanEffect{land_index: land_index, count: 1})?;
-            game.do_effect(GenerateEnergyEffect{spirit_index: usage.using_spirit_index, energy: 1})?;
-        }
+    // gather up to 2 dahan
+    game.do_effect(GatherDecision{land_index, count: 2, may: true,
+        kinds: vec![PieceKind::Dahan]})?;
 
-        Ok(())
-    } else {
-        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+    // if 2 or more dahan
+    if game.get_land(land_index)?.dahan.len() >= 2 {
+        game.do_effect(AddDahanEffect{land_index, count: 1})?;
+        game.do_effect(GenerateEnergyEffect{spirit_index: usage.using_spirit_index, energy: 1})?;
     }
+
+    Ok(())
 }
 
 fn card_wash_away (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = game.get_power_usage()?;
     if let PowerTarget::Land(land_index) = usage.target {
-        game.do_effect(PushDecision{land_index: land_index, count: 3, may: true,
+        game.do_effect(PushDecision{land_index, count: 3, may: true,
             kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]})
     } else {
         Err(StepFailure::RulesViolation("Power must target a land.".to_string()))

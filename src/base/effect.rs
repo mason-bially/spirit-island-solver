@@ -22,6 +22,9 @@ impl Clone for Box<dyn Effect> {
 }
 
 
+pub type SubEffect = fn (&mut GameState) -> Result<(), StepFailure>;
+
+
 mod add_piece;
 mod do_damage;
 mod fear;

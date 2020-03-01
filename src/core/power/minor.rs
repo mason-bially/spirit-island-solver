@@ -14,7 +14,22 @@ fn card_call_of_the_dahan_ways (game: &mut GameState) -> Result<(), StepFailure>
 }
 
 fn card_call_to_bloodshed (game: &mut GameState) -> Result<(), StepFailure> {
-    game.do_effect(NotImplementedEffect { what: "Call to Bloodshed" })
+    game.do_effect(ChooseEffectDecision{
+        choices: vec![
+            |game| {
+                let land_index = game.get_power_usage()?.target_land()?;
+                // 1 damage per dahan
+                let damage = game.get_land(land_index)?.dahan.len() as u16;
+                game.do_effect(DoDamageToInvadersDecision{land_index, damage})
+            },
+            |game| {
+                let land_index = game.get_power_usage()?.target_land()?;
+                // gather up to 3
+                game.do_effect(GatherDecision{land_index, count: 3, may: true,
+                    kinds: vec![PieceKind::Dahan]})
+            }
+        ]
+    })
 }
 
 fn card_call_to_isolation (game: &mut GameState) -> Result<(), StepFailure> {
@@ -30,21 +45,18 @@ fn card_call_to_tend (game: &mut GameState) -> Result<(), StepFailure> {
 }
 
 fn card_dark_and_tangled_woods (game: &mut GameState) -> Result<(), StepFailure> {
-    let usage = game.get_power_usage()?;
-    if let PowerTarget::Land(land_index) = usage.target {
-        // 2 fear
-        game.do_effect(GenerateFearEffect{fear: 2, land_index: Some(land_index)})?;
+    let land_index = game.get_power_usage()?.target_land()?;
+    
+    // 2 fear
+    game.do_effect(GenerateFearEffect{fear: 2, land_index: Some(land_index)})?;
 
-        // if land is m|s def 3
-        let land = game.get_land_desc(land_index)?;
-        if land.kind == LandKind::Mountain || land.kind == LandKind::Jungle {
-            game.do_effect(PersistDefenseEffect{land_index, defense: 3})?;
-        }
-
-        Ok(())
-    } else {
-        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+    // if land is m|s def 3
+    let land = game.get_land_desc(land_index)?;
+    if land.kind == LandKind::Mountain || land.kind == LandKind::Jungle {
+        game.do_effect(PersistDefenseEffect{land_index, defense: 3})?;
     }
+
+    Ok(())
 }
 
 fn card_delusions_of_danger (game: &mut GameState) -> Result<(), StepFailure> {
@@ -56,19 +68,17 @@ fn card_devouring_ants (game: &mut GameState) -> Result<(), StepFailure> {
 }
 
 fn card_drift_down_into_slumber (game: &mut GameState) -> Result<(), StepFailure> {
-    let usage = game.get_power_usage()?;
-    if let PowerTarget::Land(land_index) = usage.target {
-        let land = game.get_land_desc(land_index)?;
-        if land.kind == LandKind::Jungle || land.kind == LandKind::Sands {
-            // instead def 4
-            game.do_effect(PersistDefenseEffect{land_index, defense: 4})
-        } else {
-            // def 1
-            game.do_effect(PersistDefenseEffect{land_index, defense: 1})
-        }
-    } else {
-        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+    let land_index = game.get_power_usage()?.target_land()?;
+
+    let mut defense = 1;
+
+    // instead def 4
+    let land = game.get_land_desc(land_index)?;
+    if land.kind == LandKind::Jungle || land.kind == LandKind::Sands {
+        defense = 4;
     }
+
+    game.do_effect(PersistDefenseEffect{land_index, defense})
 }
 
 pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
