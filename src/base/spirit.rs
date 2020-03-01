@@ -51,15 +51,16 @@ pub enum Element {
 
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       match *self {
-            Element::Sun => write!(f, "☀️"),
-            Element::Moon => write!(f, "🌙"),
-            Element::Fire => write!(f, "🔥"),
-            Element::Air => write!(f, "🪶"),
-            Element::Water => write!(f, "💧"),
-            Element::Earth => write!(f, "⛰️"),
-            Element::Plant => write!(f, "☘️"),
-            Element::Animal => write!(f, "🐾"),
+        match *self {
+            // removed emojis due to not being fixed width
+            Element::Sun => write!(f, "S"),      // ☀️
+            Element::Moon => write!(f, "M"),     // 🌙
+            Element::Fire => write!(f, "F"),      // 🔥
+            Element::Air => write!(f, "A"),       // 🪶
+            Element::Water => write!(f, "W"),     // 💧
+            Element::Earth => write!(f, "E"),     // ⛰️
+            Element::Plant => write!(f, "L"),     // ☘️
+            Element::Animal => write!(f, "N"),    // 🐾
        }
     }
 }
@@ -147,6 +148,8 @@ pub struct SpiritState {
     pub deck: SpiritPowerDeck,
 
     pub energy: u8,
+    pub plays: u8,
+    pub elements: ElementMap<u8>,
 }
 
 impl SpiritState {
@@ -158,6 +161,8 @@ impl SpiritState {
             deck: SpiritPowerDeck::new(),
 
             energy: 0,
+            plays: 0,
+            elements: ElementMap::new(|| 0),
         }
     }
 

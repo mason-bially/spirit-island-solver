@@ -12,11 +12,11 @@ use super::*;
 pub struct GameDescription {
     pub content: Vec<Box<dyn ContentPack>>,
     pub adversary: Box<dyn AdversaryDescription>,
-    pub spirits: Vec<Box<dyn SpiritDescription>>,
+    pub spirits: Vec<Rc<Box<dyn SpiritDescription>>>,
     pub table: Rc<TableDescription>,
 
     pub fear: Vec<Rc<FearCardDescription>>,
-    pub power: Vec<Rc<PowerCardDescription>>,
+    pub powers: Vec<Rc<PowerCardDescription>>,
 }
 
 impl GameDescription {
@@ -36,11 +36,11 @@ impl GameDescription {
         GameDescription {
             content,
             adversary,
-            spirits,
+            spirits: spirits.into_iter().map(Rc::new).collect(),
             table: Rc::from(table),
 
             fear: fear_cards.into_iter().map(Rc::from).collect(),
-            power: power_cards.into_iter().map(Rc::from).collect(),
+            powers: power_cards.into_iter().map(Rc::from).collect(),
         }
     }
 }
@@ -72,6 +72,9 @@ pub struct GameState {
     pub blight_remaining: u8,
 
     pub spirits: Vec<SpiritState>,
+
+    pub minor_powers: PowerDeck,
+    pub major_powers: PowerDeck,
 
     /*
     fears: SimpleDeck<Box<dyn Fear>>,
@@ -109,11 +112,8 @@ impl GameState {
 
             spirits: Vec::new(),
 
-            /*
-
-            minor_powers: SimpleDeck::new(),
-            major_powers: SimpleDeck::new(),
-            */
+            minor_powers: PowerDeck::new(),
+            major_powers: PowerDeck::new(),
         }
     }
 
@@ -167,9 +167,12 @@ impl GameState {
         self.spirits.get_mut(spirit_index as usize)
             .ok_or(StepFailure::InternalError("index out of range".to_string()))
     }
-    pub fn get_spirit_desc(&self, spirit_index: u8) -> Result<&Box<dyn SpiritDescription>, StepFailure> {
-        self.desc.spirits.get(spirit_index as usize)
-            .ok_or(StepFailure::InternalError("index out of range".to_string()))
+    pub fn get_spirit_desc(&self, spirit_index: u8) -> Result<Rc<Box<dyn SpiritDescription>>, StepFailure> {
+        Ok(Rc::clone(
+            self.desc.spirits
+                .get(spirit_index as usize)
+                .ok_or(StepFailure::InternalError("index out of range".to_string()))?
+        ))
     }
 
     pub fn get_power_usage(&self) -> Result<&PowerUsage, StepFailure> {
@@ -280,12 +283,40 @@ impl GameState {
 
                 desc.adversary.setup(self);
 
+                for spirit_desc in desc.spirits.iter() {
+                    self.spirits.push(SpiritState::new(spirit_desc));
+                }
+
+                self.minor_powers.init(
+                    self.desc.powers.iter()
+                        .filter(|pcd| pcd.kind == PowerCardKind::Minor)
+                        .map(|pcd| Rc::clone(pcd))
+                        .collect(),
+                    &mut self.rng.get_rng());
+                self.major_powers.init(
+                    self.desc.powers.iter()
+                        .filter(|pcd| pcd.kind == PowerCardKind::Major)
+                        .map(|pcd| Rc::clone(pcd))
+                        .collect(),
+                    &mut self.rng.get_rng());
+
                 GameStep::SetupSpirit
             }
             GameStep::SetupSpirit => {
-                for (index, spirit) in desc.spirits.iter().enumerate() {
-                    self.log(format!("Setting up spirit {} ({})", index, spirit.name()));
-                    spirit.do_setup(self, index)?;
+                for (index, spirit_desc) in desc.spirits.iter().enumerate() {
+                    let spirit_index = index as u8;
+                    self.log(format!("Setting up spirit {} ({})", index, spirit_desc.name()));
+                    
+                    let powers = self.desc.powers.iter()
+                        .filter(|pcd| pcd.kind == PowerCardKind::Spirit(spirit_index))
+                        .map(|pcd| Rc::clone(pcd))
+                        .collect();
+
+                    spirit_desc.do_setup(self, index)?;
+
+                    let spirit_mut = self.get_spirit_mut(spirit_index)?;
+
+                    spirit_mut.deck.init(powers);
                 }
 
                 GameStep::SetupExplore
@@ -306,13 +337,39 @@ impl GameState {
 
                 // TODO: Post setup-explore adversary setup?
 
-                GameStep::Turn(0, TurnStep::Spirit)
+                GameStep::Turn(0, TurnStep::Spirit(SpiritStep::Growth))
             }
             GameStep::Turn(turn, turn_step) => {
                 match &turn_step {
-                    TurnStep::Spirit => {
+                    TurnStep::Spirit(spirit_step) => {
+                        match &spirit_step {
+                            SpiritStep::Growth => {
 
-                        GameStep::Turn(turn, TurnStep::FastPower)
+                                GameStep::Turn(turn, TurnStep::Spirit(SpiritStep::Income))
+                            }
+                            SpiritStep::Income => {
+                                for (index, spirit_desc) in desc.spirits.iter().enumerate() {
+                                    //spirit_desc.do_income(self, index)?;
+                                }
+
+                                GameStep::Turn(turn, TurnStep::Spirit(SpiritStep::Play))
+                            }
+                            SpiritStep::Play => {
+
+                                for (index, spirit_desc) in desc.spirits.iter().enumerate() {
+                                    self.log(format!("State of {}:", spirit_desc.name()));
+                                    let spirit = self.get_spirit(index as u8)?;
+                                    for card in spirit.deck.hand.iter() {
+                                        self.log_subeffect(format!(" $  |{}|", card.desc));
+                                    }
+                                    for card in spirit.deck.pending.iter() {
+                                        self.log_subeffect(format!(">>> |{}|", card.desc));
+                                    }
+                                }
+
+                                GameStep::Turn(turn, TurnStep::FastPower)
+                            }
+                        }
                     }
                     TurnStep::FastPower => {
 
@@ -390,7 +447,7 @@ impl GameState {
                             land.time_passes();
                         }
 
-                        GameStep::Turn(turn + 1, TurnStep::Spirit)
+                        GameStep::Turn(turn + 1, TurnStep::Spirit(SpiritStep::Growth))
                     }
                 }
             }

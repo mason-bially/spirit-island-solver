@@ -14,8 +14,15 @@ pub enum InvaderStep {
 }
 
 #[derive(Copy, Clone)]
+pub enum SpiritStep {
+    Growth,
+    Income,
+    Play,
+}
+
+#[derive(Copy, Clone)]
 pub enum TurnStep {
-    Spirit,
+    Spirit(SpiritStep),
     FastPower,
     Invader(InvaderStep),
     SlowPower,
@@ -44,10 +51,20 @@ impl fmt::Display for InvaderStep {
     }
 }
 
+impl fmt::Display for SpiritStep {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &*self {
+            SpiritStep::Growth => write!(f, "Growth"),
+            SpiritStep::Income => write!(f, "Income"),
+            SpiritStep::Play => write!(f, "Play"),
+       }
+    }
+}
+
 impl fmt::Display for TurnStep {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &*self {
-            TurnStep::Spirit => write!(f, "Spirit"),
+            TurnStep::Spirit(step) => write!(f, "Spirit - {}", step),
             TurnStep::FastPower => write!(f, "Fast Powers"),
             TurnStep::Invader(step) => write!(f, "Invader - {}", step),
             TurnStep::SlowPower => write!(f, "Slow Powers"),

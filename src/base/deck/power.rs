@@ -3,6 +3,7 @@
 use std::{
     rc::Rc,
     clone::Clone,
+    fmt,
     iter::*,
 };
 
@@ -19,11 +20,21 @@ use crate::base::{
 };
 
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum PowerCardKind {
     Minor,
     Major,
     Spirit(u8),
+}
+
+impl fmt::Display for PowerCardKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PowerCardKind::Minor => write!(f, "Minor "),
+            PowerCardKind::Major => write!(f, "Major "),
+            PowerCardKind::Spirit(_) => write!(f, "Spirit"),
+       }
+    }
 }
 
 pub enum PowerTargetFilter {
@@ -32,13 +43,13 @@ pub enum PowerTargetFilter {
     Land(fn(&LandState) -> bool),
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum PowerTarget {
     Spirit(u8),
     Land(u8),
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct PowerUsage {
     pub target: PowerTarget,
     pub using_spirit_index: u8,
@@ -59,10 +70,17 @@ pub struct PowerCardDescription {
     pub effect_builder: fn (&GameState) -> Result<Box<dyn Effect>, StepFailure>,
 }
 
+impl fmt::Display for PowerCardDescription {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {} - {}", self.elements, self.kind, self.name)
+    }
+}
 
-#[derive(Copy, Clone)]
+
+#[derive(Clone)]
 pub struct PowerCard {
-    pub index: usize
+    pub desc: Rc<PowerCardDescription>,
+    pub index: usize,
 }
 
 
@@ -81,12 +99,12 @@ impl PowerDeck {
     }
 
     pub fn init(&mut self, 
-            desc: &Rc<Vec<PowerCardDescription>>,
+            desc: Vec<Rc<PowerCardDescription>>,
             mut rng: &mut dyn RngCore) {
         self.draw
-            = desc.iter()
+            = desc.into_iter()
                 .enumerate()
-                .map(|(i, _)| PowerCard{ index: i })
+                .map(|(index, desc)| PowerCard{ index, desc })
                 .collect();
         self.draw.shuffle(&mut rng);
     }
@@ -120,5 +138,14 @@ impl SpiritPowerDeck {
             discard: Vec::new(),
             forgotten: Vec::new(),
         }
+    }
+
+    pub fn init(&mut self, 
+            desc: Vec<Rc<PowerCardDescription>>) {
+        self.hand
+            = desc.into_iter()
+                .enumerate()
+                .map(|(index, desc)| PowerCard{ index, desc })
+                .collect();
     }
 }

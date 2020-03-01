@@ -38,7 +38,7 @@ impl Effect for PushDecision {
         }
 
         // 1. Get possible source count
-        let mut total_source_count: usize;
+        let total_source_count: usize;
         {
             let src_land = game.get_land(self.land_index)?;
             total_source_count = self.kinds.iter().map(|pk| src_land.get_count(pk)).sum();

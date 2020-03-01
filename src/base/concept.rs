@@ -30,7 +30,7 @@ impl fmt::Display for InvaderActionKind {
 }
 
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum LandKind {
     Ocean,
     Jungle,
