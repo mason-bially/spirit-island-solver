@@ -13,7 +13,7 @@ pub struct SpiritDescriptionRiver {
 
 }
 
-fn card_boon_of_vigor (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
+fn card_boon_of_vigor (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = game.get_power_usage()?;
     if let PowerTarget::Spirit(dst_spirit_index) = usage.target {
         let energy 
@@ -24,13 +24,13 @@ fn card_boon_of_vigor (game: &GameState) -> Result<Box<dyn Effect>, StepFailure>
                 spirit.deck.pending.len() as u8
             };
 
-        Ok(Box::new(GenerateEnergyEffect{spirit_index: dst_spirit_index, energy}))
+        game.do_effect(GenerateEnergyEffect{spirit_index: dst_spirit_index, energy})
     } else {
         Err(StepFailure::RulesViolation("Power must target a spirit.".to_string()))
     }
 }
 
-fn card_flash_floods (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
+fn card_flash_floods (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = game.get_power_usage()?;
     if let PowerTarget::Land(land_index) = usage.target {
         let land = game.get_land_desc(land_index)?;
@@ -41,44 +41,35 @@ fn card_flash_floods (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> 
             damage += 1;
         }
 
-        Ok(Box::new(DoDamageToInvadersDecision{land_index: land_index, damage}))
+        game.do_effect(DoDamageToInvadersDecision{land_index: land_index, damage})
     } else {
         Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
     }
 }
 
-fn card_rivers_bounty (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
-    let usage = game.get_power_usage()?;
+fn card_rivers_bounty (game: &mut GameState) -> Result<(), StepFailure> {
+    let usage = *game.get_power_usage()?;
     if let PowerTarget::Land(land_index) = usage.target {
-        Ok(Box::new(SequencedEffect{sequence: vec![
-            SubEffect::Built(Box::new(GatherDecision{land_index: land_index, count: 3, may: true,
-                kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]})),
-            SubEffect::ConditionalBuild(|game| {
-                let usage = game.get_power_usage()?;
-                if let PowerTarget::Land(land_index) = usage.target {
-                    let land = game.get_land(land_index)?;
-                    if land.dahan.len() >= 2 {
-                        Ok(Some(Box::new(SequencedEffect{sequence: vec![
-                            SubEffect::Built(Box::new(AddDahanEffect{land_index: land_index, count: 1})),
-                            SubEffect::Built(Box::new(GenerateEnergyEffect{spirit_index: usage.using_spirit_index, energy: 1})),
-                        ]})))
-                    } else {
-                        Ok(None)
-                    }
-                } else {
-                    Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
-                }}),
-        ]}))
+        // Gather up to 2 dahan
+        game.do_effect(GatherDecision{land_index: land_index, count: 2, may: true,
+            kinds: vec![PieceKind::Dahan]})?;
+
+        if game.get_land(land_index)?.dahan.len() >= 2 {
+            game.do_effect(AddDahanEffect{land_index: land_index, count: 1})?;
+            game.do_effect(GenerateEnergyEffect{spirit_index: usage.using_spirit_index, energy: 1})?;
+        }
+
+        Ok(())
     } else {
         Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
     }
 }
 
-fn card_wash_away (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
+fn card_wash_away (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = game.get_power_usage()?;
     if let PowerTarget::Land(land_index) = usage.target {
-        Ok(Box::new(PushDecision{land_index: land_index, count: 3, may: true,
-            kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]}))
+        game.do_effect(PushDecision{land_index: land_index, count: 3, may: true,
+            kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]})
     } else {
         Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
     }
@@ -97,7 +88,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 cost: 0, speed: PowerSpeed::Fast, range: None,
                 target_filter: PowerTargetFilter::Spirit(|_| true),
 
-                effect_builder: card_boon_of_vigor
+                effect: card_boon_of_vigor
             },
             PowerCardDescription {
                 name: "Flash Floods",
@@ -106,7 +97,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 cost: 1, speed: PowerSpeed::Fast, range: Some(1),
                 target_filter: PowerTargetFilter::Land(|_| true),
 
-                effect_builder: card_flash_floods,
+                effect: card_flash_floods,
             },
             PowerCardDescription {
                 name: "River's Bounty",
@@ -115,7 +106,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 cost: 0, speed: PowerSpeed::Slow, range: Some(0),
                 target_filter: PowerTargetFilter::Land(|_| true),
 
-                effect_builder: card_rivers_bounty,
+                effect: card_rivers_bounty,
             },
             PowerCardDescription {
                 name: "Wash Away",
@@ -124,7 +115,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 cost: 1, speed: PowerSpeed::Slow, range: Some(1),
                 target_filter: PowerTargetFilter::Land(|_| true),
 
-                effect_builder: card_wash_away,
+                effect: card_wash_away,
             },
         ]
     }

@@ -3,6 +3,7 @@
 use std::{
     rc::Rc,
     clone::Clone,
+    any::Any,
     fmt,
     iter::*,
 };
@@ -37,6 +38,7 @@ impl fmt::Display for PowerCardKind {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum PowerTargetFilter {
     None,
     Spirit(fn(&SpiritState) -> bool),
@@ -56,6 +58,7 @@ pub struct PowerUsage {
     pub src_land_index: Option<u8>,
 }
 
+#[derive(Clone)]
 pub struct PowerCardDescription {
     pub name: &'static str,
     
@@ -67,13 +70,25 @@ pub struct PowerCardDescription {
     pub range: Option<u8>,
     pub target_filter: PowerTargetFilter,
 
-    pub effect_builder: fn (&GameState) -> Result<Box<dyn Effect>, StepFailure>,
+    pub effect: fn (&mut GameState) -> Result<(), StepFailure>,
 }
 
 impl fmt::Display for PowerCardDescription {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} {} - {}", self.elements, self.kind, self.name)
     }
+}
+
+impl Effect for PowerCardDescription {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        game.log(format!("playing power card |{}|", self));
+
+        // actually run the effect as "ourself"
+        (self.effect)(game)
+    }
+
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
 }
 
 

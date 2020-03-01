@@ -22,14 +22,6 @@ impl Clone for Box<dyn Effect> {
 }
 
 
-#[derive(Clone)]
-pub enum SubEffect {
-    Built(Box<dyn Effect>),
-    AlwaysBuild(fn (&GameState) -> Result<Box<dyn Effect>, StepFailure>),
-    ConditionalBuild(fn (&GameState) -> Result<Option<Box<dyn Effect>>, StepFailure>),
-}
-
-
 mod add_piece;
 mod do_damage;
 mod fear;
@@ -44,7 +36,7 @@ pub use self::do_damage::{DoDamageToLandEffect, DoInvaderAttackEffect, DoDahanAt
 pub use self::fear::{GenerateFearEffect};
 pub use self::growth::{GenerateEnergyEffect};
 pub use self::invader_action::{ExploreEffect, BuildEffect, RavageEffect};
-pub use self::meta::{NotImplementedEffect, SequencedEffect, ForAllLandsDoEffect};
+pub use self::meta::{NotImplementedEffect, ForAllLandsDoEffect};
 pub use self::persist::{PersistDefenseEffect};
 pub use self::remove_piece::{RemoveDahanEffect, RemoveInvaderEffect};
 
