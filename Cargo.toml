@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 simple-error = "0.2"
+itertools = "0.8.2"
 rand = "0.7"
 rand_chacha = "0.2.1"
 rust-crypto = "^0.2"

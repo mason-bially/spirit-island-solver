@@ -15,7 +15,7 @@ impl Effect for ExploreEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log(format!("Exploring in land {}.", self.land_index));
 
-        let adj_lands = game.table.desc.lands_adjacent(self.land_index);
+        let adj_lands = game.table.desc.get_adjacent_lands(self.land_index);
         let will_explore = adj_lands.iter().any(|l|
             game.get_land(l.index_on_table).ok().unwrap()
                 .invaders.iter()

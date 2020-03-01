@@ -14,6 +14,19 @@ pub enum TokenKind {
     Badlands,
 }
 
+impl fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            TokenKind::Blight => write!(f, "Blight"),
+            TokenKind::Beast => write!(f, "Beast"),
+            TokenKind::Wilds => write!(f, "Wilds"),
+            TokenKind::Disease => write!(f, "Disease"),
+            TokenKind::Strife => write!(f, "Strife"),
+            TokenKind::Badlands => write!(f, "Badlands"),
+       }
+    }
+}
+
 #[derive(Copy, Clone)]
 pub struct TokenMap<T>( [T; 6] );
 
@@ -77,7 +90,7 @@ impl InvaderKind {
 
 impl fmt::Display for InvaderKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       match *self {
+        match *self {
             InvaderKind::Explorer => write!(f, "Explorer"),
             InvaderKind::Town => write!(f, "Town"),
             InvaderKind::City => write!(f, "City"),
@@ -164,5 +177,22 @@ impl Dahan {
         self.health_max = 2;
         self.health_cur = self.health_max;
         self.attack = 2;
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+pub enum PieceKind {
+    Token(TokenKind),
+    Invader(InvaderKind),
+    Dahan,
+}
+
+impl fmt::Display for PieceKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PieceKind::Token(tok) => write!(f, "{}", tok),
+            PieceKind::Invader(inv) => write!(f, "{}", inv),
+            PieceKind::Dahan => write!(f, "Dahan"),
+       }
     }
 }

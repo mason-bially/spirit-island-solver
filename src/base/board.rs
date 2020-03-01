@@ -98,7 +98,7 @@ impl TableDescription {
         self.lands.get(index as usize).unwrap().clone()
     }
 
-    pub fn lands_adjacent(&self, adjacent_to_index: u8) -> Vec<Rc<LandDescription>> {
+    pub fn get_adjacent_lands(&self, adjacent_to_index: u8) -> Vec<Rc<LandDescription>> {
         self.lands.clone().into_iter()
             .filter(|l| l.adjacent.contains(&adjacent_to_index))
             .collect()
@@ -115,6 +115,14 @@ impl LandState {
         }
 
         self.defense = 0;
+    }
+
+    pub fn get_count(&self, pk: &PieceKind) -> usize {
+        match pk {
+            PieceKind::Token(tok_kind) => self.tokens[*tok_kind] as usize,
+            PieceKind::Invader(inv_kind) => self.invaders.iter().filter(|i| i.kind == *inv_kind).count(),
+            PieceKind::Dahan => self.dahan.len(),
+        }
     }
 }
 

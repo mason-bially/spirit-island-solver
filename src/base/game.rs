@@ -149,6 +149,15 @@ impl GameState {
                 .ok_or(StepFailure::InternalError("index out of range".to_string()))?
             ))
     }
+    pub fn get_adjacent_lands(&self, land_index: u8) -> Result<Vec<&LandState>, StepFailure> {
+        let adjacent_indexes = self.get_land_desc(land_index)?.adjacent.clone();
+
+        Ok(adjacent_indexes.into_iter().map(|i| self.get_land(i).ok().unwrap()).collect())
+    }
+    pub fn get_adjacent_lands_desc(&self, land_index: u8) -> Result<Vec<Rc<LandDescription>>, StepFailure> {
+        Ok(self.desc.table
+            .get_adjacent_lands(land_index))
+    }
 
     pub fn get_spirit(&self, spirit_index: u8) -> Result<&SpiritState, StepFailure> {
         self.spirits.get(spirit_index as usize)

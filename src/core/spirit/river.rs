@@ -2,8 +2,9 @@
 
 use crate::base::{
     GameState, StepFailure, SpiritDescription,
-    LandKind, PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, PowerUsage, Element, ElementMap,
     PowerCardDescription,
+    PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
+    LandKind, PieceKind, InvaderKind,
     effect::*, decision::*,
 };
 
@@ -47,11 +48,40 @@ fn card_flash_floods (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> 
 }
 
 fn card_rivers_bounty (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
-    Ok(Box::new(NotImplementedEffect { what: "River's Bounty" }))
+    let usage = game.get_power_usage()?;
+    if let PowerTarget::Land(land_index) = usage.target {
+        Ok(Box::new(SequencedEffect{sequence: vec![
+            SubEffect::Built(Box::new(GatherDecision{land_index: land_index, count: 3, may: true,
+                kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]})),
+            SubEffect::ConditionalBuild(|game| {
+                let usage = game.get_power_usage()?;
+                if let PowerTarget::Land(land_index) = usage.target {
+                    let land = game.get_land(land_index)?;
+                    if land.dahan.len() >= 2 {
+                        Ok(Some(Box::new(SequencedEffect{sequence: vec![
+                            SubEffect::Built(Box::new(AddDahanEffect{land_index: land_index, count: 1})),
+                            SubEffect::Built(Box::new(GenerateEnergyEffect{spirit_index: usage.using_spirit_index, energy: 1})),
+                        ]})))
+                    } else {
+                        Ok(None)
+                    }
+                } else {
+                    Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+                }}),
+        ]}))
+    } else {
+        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+    }
 }
 
 fn card_wash_away (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
-    Ok(Box::new(NotImplementedEffect { what: "Wash Away" }))
+    let usage = game.get_power_usage()?;
+    if let PowerTarget::Land(land_index) = usage.target {
+        Ok(Box::new(PushDecision{land_index: land_index, count: 3, may: true,
+            kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]}))
+    } else {
+        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+    }
 }
 
 impl SpiritDescription for SpiritDescriptionRiver {

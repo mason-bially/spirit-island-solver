@@ -1,11 +1,13 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use crate::base::{
-    GameState, StepFailure,
-    LandKind, PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, PowerUsage, Element, ElementMap,
+    GameState, StepFailure, SpiritDescription,
     PowerCardDescription,
+    PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
+    LandKind, PieceKind, InvaderKind,
     effect::*, decision::*,
 };
+
 
 fn card_call_of_the_dahan_ways (game: &GameState) -> Result<Box<dyn Effect>, StepFailure> {
     Ok(Box::new(NotImplementedEffect { what: "Call of The Dahan Ways" }))
