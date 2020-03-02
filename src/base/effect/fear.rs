@@ -15,7 +15,7 @@ pub struct GenerateFearEffect {
 
 impl Effect for GenerateFearEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_effect(format!("adding {} fear.", self.fear));
+        //game.log_effect(format!("adding {} fear.", self.fear));
 
         // 1. Manipulate pool and draw cards!
         let mut remaining_fear = self.fear;
@@ -27,7 +27,7 @@ impl Effect for GenerateFearEffect {
             remaining_fear -= fear_to_move;
 
             if game.fear_pool == 0 {
-                game.log_subeffect("drawing a fear card!".to_string());
+                //game.log_subeffect("drawing a fear card!".to_string());
 
                 game.fear.draw_into_pending();
                 game.fear_pool = game.fear_generated;

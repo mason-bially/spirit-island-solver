@@ -28,7 +28,7 @@ impl Effect for CascadeBlightDecision {
             return Err(StepFailure::RulesViolation("Cascade Blight: Blight must be placed on lands that are in play!".to_string()))
         }
 
-        game.log_decision(format!("cascading blight to: {}", dst_land_index));
+        //game.log_decision(format!("cascading blight to: {}", dst_land_index));
 
         game.do_effect(AddBlightEffect{ land_index: dst_land_index })?;
         

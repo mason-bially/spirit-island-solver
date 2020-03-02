@@ -339,7 +339,7 @@ impl GameState {
             GameStep::SetupSpirit => {
                 for (index, spirit_desc) in desc.spirits.iter().enumerate() {
                     let spirit_index = index as u8;
-                    self.log_effect(format!("Setting up spirit {} ({})", index, spirit_desc.name()));
+                    //self.log_effect(format!("Setting up spirit {} ({})", index, spirit_desc.name()));
                     
                     let powers = self.desc.powers.iter()
                         .filter(|pcd| pcd.kind == PowerCardKind::Spirit(spirit_index))
@@ -360,7 +360,7 @@ impl GameState {
                 self.invader.draw_into_pending();
 
                 let &card = self.invader.pending.back().unwrap().first().unwrap();
-                self.log_effect(format!("Invader Action Card: {}", card));
+                //self.log_effect(format!("Invader Action Card: {}", card));
 
                 let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
                 for land in lands {
@@ -397,13 +397,13 @@ impl GameState {
                                 }
 
                                 for (index, spirit_desc) in desc.spirits.iter().enumerate() {
-                                    self.log_effect(format!("State of {}:", spirit_desc.name()));
+                                    //self.log_effect(format!("State of {}:", spirit_desc.name()));
                                     let spirit = self.get_spirit(index as u8)?;
                                     for card in spirit.deck.hand.iter() {
-                                        self.log_subeffect(format!(" $  |{}|", card.desc));
+                                        //self.log_subeffect(format!(" $  |{}|", card.desc));
                                     }
                                     for card in spirit.deck.pending.iter() {
-                                        self.log_subeffect(format!(">>> |{}|", card.desc));
+                                        //self.log_subeffect(format!(">>> |{}|", card.desc));
                                     }
                                 }
 
@@ -431,7 +431,7 @@ impl GameState {
 
                                 let terror_level = self.fear.terror_level();
 
-                                self.log_effect(format!("Fear Card ({}): {}", terror_level, card.desc.name));
+                                //self.log_effect(format!("Fear Card ({}): {}", terror_level, card.desc.name));
 
                                 self.do_effect_box(
                                     match terror_level {
@@ -451,7 +451,7 @@ impl GameState {
                                 // TODO: Technically the order here is a decision...
                                 let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
 
-                                self.log_effect(format!("Invader Action Card: {}", card));
+                                //self.log_effect(format!("Invader Action Card: {}", card));
                                 match &inv_kind {
                                     InvaderActionKind::Explore => {
                                         for land in lands {

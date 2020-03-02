@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use crate::base::{
-    GameState, StepFailure, SpiritDescription,
+    GameState, StepFailure,
     PowerCardDescription,
     PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
     LandKind, PieceKind, InvaderKind,

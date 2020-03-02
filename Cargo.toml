@@ -13,3 +13,9 @@ rand = "0.7"
 rand_chacha = "0.2.1"
 rust-crypto = "^0.2"
 clap = "~2.33.0"
+
+[profile.release]
+debug = true
+
+[profile.dev]
+opt = 1

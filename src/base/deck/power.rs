@@ -97,7 +97,7 @@ impl fmt::Display for PowerCardDescription {
 
 impl Effect for PowerCardDescription {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_effect(format!("playing power card |{}|", self));
+        //game.log_effect(format!("playing power card |{}|", self));
 
         // actually run the effect as "ourself"
         (self.effect)(game)
@@ -142,7 +142,7 @@ impl PowerDeck {
         self.draw.shuffle(&mut rng);
     }
 
-    pub fn draw(&mut self, mut rng: &mut dyn RngCore, count: usize) -> Vec<PowerCard> {
+    pub fn draw(&mut self, rng: &mut dyn RngCore, count: usize) -> Vec<PowerCard> {
         let mut res = Vec::new();
         // TODO resultify
         // TODO make not a for a loop
@@ -158,7 +158,7 @@ impl PowerDeck {
         res
     }
 
-    pub fn draw_into_pending(&mut self, mut rng: &mut dyn RngCore, count: usize) {
+    pub fn draw_into_pending(&mut self, rng: &mut dyn RngCore, count: usize) {
         let drawn = self.draw(rng, count);
         self.pending.extend(drawn);
     }

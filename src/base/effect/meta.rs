@@ -14,7 +14,7 @@ pub struct NotImplementedEffect {
 
 impl Effect for NotImplementedEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_effect(format!("NOT IMPLEMENTED {}.", self.what));
+        //game.log_effect(format!("NOT IMPLEMENTED {}.", self.what));
 
         Ok(())
     }
@@ -32,7 +32,7 @@ pub struct ForAllLandsDoEffect {
 
 impl Effect for ForAllLandsDoEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_effect("for all lands...".to_string());
+        //game.log_effect("for all lands...".to_string());
 
         let effects: Vec<Box<dyn Effect>>
             = game.table.lands.iter()

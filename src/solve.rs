@@ -6,9 +6,10 @@ use std::{
         atomic::{Ordering, AtomicUsize},
     },
     collections::{VecDeque},
+    time::Instant,
 };
 
-use crate::base::{GameState, StepFailure, Decision, DecisionChoice};
+use crate::base::{GameState, StepFailure, DecisionChoice};
 
 
 
@@ -128,14 +129,14 @@ pub struct SolveBranch {
 impl SolveBranch {
     pub fn new(
         parent: Weak<Mutex<SolveBranch>>,
-        game_state: &GameState,
+        game_state: GameState,
         decision_edge: VecDeque<DecisionChoice>,
     ) -> SolveBranch {
         SolveBranch {
             parent: parent,
             decision_edge,
 
-            game_state: game_state.clone(),
+            game_state: game_state,
             state: SolveBranchState::Inited,
 
             branches: Vec::new(),
@@ -151,17 +152,23 @@ pub struct SolveEngine {
     init_branch: Arc<Mutex<SolveBranch>>,
 
     branches: AtomicUsize,
+    steps: AtomicUsize,
 
-    strategy: Box<dyn SolveStrategy>
+    last_update: Mutex<Instant>,
+
+    strategy: Box<dyn SolveStrategy>,
 }
 
 impl SolveEngine {
     pub fn new(init_state: &GameState, strategy: Box<dyn SolveStrategy>) -> SolveEngine {
         SolveEngine {
             init_state: init_state.clone(),
-            init_branch: Arc::new(Mutex::new(SolveBranch::new(Weak::new(), init_state, VecDeque::new()))),
+            init_branch: Arc::new(Mutex::new(SolveBranch::new(Weak::new(), init_state.clone(), VecDeque::new()))),
 
+            steps: AtomicUsize::new(0),
             branches: AtomicUsize::new(1),
+
+            last_update: Mutex::new(Instant::now()),
 
             strategy: strategy,
         }
@@ -172,6 +179,7 @@ impl SolveEngine {
             let mut working_state = branch.game_state.clone();
             //working_state.enable_logging = true; // HACK
             let res = working_state.step();
+            self.steps.fetch_add(1, Ordering::Relaxed);
 
             match res {
                 Ok(_) => {
@@ -217,9 +225,17 @@ impl SolveEngine {
                     working_state.advance()?;
                     let prev = self.branches.fetch_add(1, Ordering::Relaxed);
                     if prev % 10000 == 0 {
-                        println!("passing {} branches", prev);
+                        let mut last_update = self.last_update.lock()
+                            .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
+
+                        let seconds = last_update.elapsed().as_secs_f64();
+                        *last_update = Instant::now();
+                        let steps = self.steps.swap(0, Ordering::Relaxed);
+                        let steps_per_second = (steps as f64) / seconds;
+                        println!("passing {} branches ({:.0} steps/s). at {}.", prev, steps_per_second, working_state.step);
+
                     }
-                    branch.branches.push(Arc::new(Mutex::new(SolveBranch::new(Weak::clone(&parent), &working_state, choices))));
+                    branch.branches.push(Arc::new(Mutex::new(SolveBranch::new(Weak::clone(&parent), working_state, choices))));
                 }
                 Err(StepFailure::DecisionRequired) => {
                     self.do_branch_expand(branch, Weak::clone(&parent), choices)?;
@@ -368,7 +384,13 @@ impl SolveEngine {
     pub fn main(&mut self) -> Result<(), Box<dyn Error>> {
         // TODO use strtaegy to decide on execution order
         // TODO have parallel worker threads
-        self.recurse_branches(&self.init_branch)?;
+
+        let start = Instant::now();
+        {
+            self.recurse_branches(&self.init_branch)?;
+        }
+        let elapsed = start.elapsed();
+        println!("Elapsed: {:.2}s", elapsed.as_secs_f64());
 
         {
             let branch = self.init_branch.lock()

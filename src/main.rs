@@ -7,12 +7,11 @@ extern crate clap;
 
 use std::error::Error;
 use std::rc::Rc;
-use std::time::Instant;
 use rand::prelude::*;
 use rand_chacha::{ChaChaRng};
 use self::crypto::digest::Digest;
 use self::crypto::sha1::Sha1;
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App};
 
 mod base;
 mod core;
@@ -67,12 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut solver = solve::SolveEngine::new(&state,
         solve::SimpleDecisionMaker::new());
 
-    let now = Instant::now();
-    {
-        solver.main()?;
-    }
-    let elapsed = now.elapsed();
-    println!("Elapsed: {:.2}s", elapsed.as_secs_f64());
+    solver.main()?;
 
     Ok(())
 }

@@ -39,16 +39,16 @@ impl Effect for PushDecision {
 
             // 1a. Sanity check
             if total_source_count == 0 {
-                game.log_effect(format!("push {} {} from {} (but no sources!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+                //game.log_effect(format!("push {} {} from {} (but no sources!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
                 return Ok(());
             }
         }
 
         if self.may {
-            game.log_decision(format!("may push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+            //game.log_decision(format!("may push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
         }
         else {
-            game.log_decision(format!("push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+            //game.log_decision(format!("push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
         }
 
         // 2. Get the decision
@@ -99,7 +99,7 @@ impl Effect for PushDecision {
 }
 
 impl Decision for PushDecision {
-    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         vec![
             DecisionChoice::PieceSequence(vec![])
         ]
@@ -128,16 +128,16 @@ impl Effect for GatherDecision {
 
             // 1a. Sanity check
             if total_target_count == 0 {
-                game.log_effect(format!("gather {} {} from {} (but no targets!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+                //game.log_effect(format!("gather {} {} from {} (but no targets!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
                 return Ok(());
             }
         }
 
         if self.may {
-            game.log_decision(format!("may gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+            //game.log_decision(format!("may gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
         }
         else {
-            game.log_decision(format!("gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+            //game.log_decision(format!("gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
         }
 
 
@@ -191,7 +191,7 @@ impl Effect for GatherDecision {
 }
 
 impl Decision for GatherDecision {
-    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         vec![
             DecisionChoice::PieceSequence(vec![])
         ]

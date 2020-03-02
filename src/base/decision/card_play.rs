@@ -39,7 +39,7 @@ impl Effect for CardPlaysDecision {
             return Err(StepFailure::InternalError("duplicate play choices!".to_string()));
         }
 
-        game.log_decision("choosing card plays...".to_string());
+        //game.log_decision("choosing card plays...".to_string());
 
         // 2. Move the cards to pending
         choice.sort();
@@ -78,7 +78,7 @@ pub struct DoCardPlayDecision {
 impl Effect for DoCardPlayDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         // 1. Get the decision target
-        game.log_decision("NOT IMPLEMENTED CHOOSING TARGET".to_string());
+        //game.log_decision("NOT IMPLEMENTED CHOOSING TARGET".to_string());
 
         Ok(())
     }
@@ -90,7 +90,7 @@ impl Effect for DoCardPlayDecision {
 }
 
 impl Decision for DoCardPlayDecision {
-    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         vec![]
     }
 }
@@ -114,12 +114,12 @@ impl Effect for DoCardPlaysDecision {
         // 1. Sanity check
         let pend_size = self.pending_size(game);
         if pend_size == 0 {
-            game.log_effect(format!("playing cards... (but no cards to play)"));
+            //game.log_effect(format!("playing cards... (but no cards to play)"));
             return Ok(());
         }
 
         // 2. Get the decision
-        let mut choice = match game.consume_choice()?
+        let choice = match game.consume_choice()?
         {
             DecisionChoice::Sequence(res) => Ok(res),
             _ => Err(StepFailure::DecisionMismatch),
@@ -140,7 +140,7 @@ impl Effect for DoCardPlaysDecision {
             return Err(StepFailure::InternalError("duplicate play choices!".to_string()));
         }
 
-        game.log_decision("playing cards...".to_string());
+        //game.log_decision("playing cards...".to_string());
 
         // 3. run the cards
         // TODO: hack, only one spirit

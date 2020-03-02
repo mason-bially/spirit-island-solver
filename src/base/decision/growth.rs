@@ -44,7 +44,7 @@ impl Effect for ChooseGrowthDecision {
             return Err(StepFailure::InternalError("duplicate growth choices!".to_string()));
         }
         
-        game.log_decision("choosing growths...".to_string());
+        //game.log_decision("choosing growths...".to_string());
 
         // 2. Run the choice as outself
         for schoice in choice {
@@ -62,7 +62,7 @@ impl Effect for ChooseGrowthDecision {
 
 impl Decision for ChooseGrowthDecision {
     // TODO: x choose y
-    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         (0..self.choices.len()).map(|index| DecisionChoice::Sequence(vec![index])).collect()
     }
 }
@@ -76,7 +76,7 @@ pub struct GainMinorPowerCardDecision {
 
 impl Effect for GainMinorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_decision(format!("gain minor power card for {} (from {}).", self.spirit_index, self.draw_count));
+        //game.log_decision(format!("gain minor power card for {} (from {}).", self.spirit_index, self.draw_count));
 
         // 1. Setup the draw/pending state
         game.minor_powers.draw_into_pending(game.rng.get_rng(), self.draw_count);
@@ -94,7 +94,7 @@ impl Effect for GainMinorPowerCardDecision {
 
         // 3. Move card
         let card = game.minor_powers.pending.remove(choice);
-        game.log_subeffect(format!("drafted |{}|.", card.desc));
+        //game.log_subeffect(format!("drafted |{}|.", card.desc));
         game.get_spirit_mut(self.spirit_index)?.deck.hand.push(card);
 
         game.minor_powers.discard_pending();
@@ -110,7 +110,7 @@ impl Effect for GainMinorPowerCardDecision {
 }
 
 impl Decision for GainMinorPowerCardDecision {
-    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         (0..self.draw_count).map(|index| DecisionChoice::Choice(index)).collect()
     }
 }
@@ -124,7 +124,7 @@ pub struct GainMajorPowerCardDecision {
 
 impl Effect for GainMajorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_decision(format!("gain major power card for {} (from {}).", self.spirit_index, self.draw_count));
+        //game.log_decision(format!("gain major power card for {} (from {}).", self.spirit_index, self.draw_count));
 
         return game.do_effect(NotImplementedEffect { what: "MAJOR POWER DRAFTING, no sacrifice, no major powers" });
 
@@ -161,7 +161,7 @@ impl Effect for GainMajorPowerCardDecision {
 }
 
 impl Decision for GainMajorPowerCardDecision {
-    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         (0..self.draw_count).map(|index| DecisionChoice::Choice(index)).collect()
     }
 }
@@ -174,7 +174,7 @@ pub struct GainPowerCardDecision {
 
 impl Effect for GainPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_decision(format!("gain power card for {}.", self.spirit_index));
+        //game.log_decision(format!("gain power card for {}.", self.spirit_index));
 
         // 1. Choose minor or major
         let choice = match game.consume_choice()?
@@ -205,7 +205,7 @@ impl Effect for GainPowerCardDecision {
 }
 
 impl Decision for GainPowerCardDecision {
-    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         vec![
             DecisionChoice::Choice(0), // Minor
             DecisionChoice::Choice(1), // Major
