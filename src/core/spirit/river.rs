@@ -131,6 +131,40 @@ impl SpiritDescription for SpiritDescriptionRiver {
 
         Ok(())
     }
+
+    fn do_growth(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure> {
+        game.do_effect(ChooseGrowthDecision{
+            spirit_index: spirit_index as u8,
+            count: 1,
+            choices: vec![
+                |game, spirit_index| {
+                    // Growth A
+                    // TODO: reclaim
+                    game.do_effect(GainPowerCardDecision{ spirit_index })?;
+                    game.do_effect(GenerateEnergyEffect{ spirit_index, energy: 1 })?;
+
+                    Ok(())
+                },
+                |game, spirit_index| {
+                    // Growth B
+                    // TODO: add presence
+                    // TODO: add presence
+
+                    Ok(())
+                },
+                |game, spirit_index| {
+                    // Growth B
+                    // TODO: add presence
+                    game.do_effect(GainPowerCardDecision{ spirit_index })?;
+                    
+                    Ok(())
+                },
+            ]
+        })
+    }
+    fn do_income(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>{
+        Ok(())
+    }
 }
 
 impl SpiritDescriptionRiver {

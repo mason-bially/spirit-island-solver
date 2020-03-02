@@ -129,6 +129,9 @@ pub trait SpiritDescription {
     fn get_power_cards(&self, spirit_index: u8) -> Vec<PowerCardDescription>;
 
     fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
+
+    fn do_growth(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
+    fn do_income(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 }
 
 #[derive(Copy, Clone)]

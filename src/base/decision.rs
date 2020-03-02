@@ -21,11 +21,13 @@ pub enum DecisionChoice {
 
 mod cascade_blight;
 mod do_damage;
+mod growth;
 mod meta;
 mod move_piece;
 
 pub use self::cascade_blight::{CascadeBlightDecision};
 pub use self::do_damage::{DoDamageToDahanDecision, DoDamageToInvadersDecision};
+pub use self::growth::{ChooseGrowthDecision, GainMinorPowerCardDecision, GainMajorPowerCardDecision, GainPowerCardDecision};
 pub use self::meta::{ChooseEffectDecision};
 pub use self::move_piece::{PushDecision, GatherDecision};
 

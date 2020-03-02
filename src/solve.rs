@@ -162,6 +162,7 @@ impl SolveEngine {
     pub fn do_branch_execute(&self, branch: &mut SolveBranch) -> Result<(), Box<dyn Error>> {
         loop {
             let mut working_state = branch.game_state.clone();
+            working_state.enable_logging = true; // HACK
             let res = working_state.step();
 
             match res {

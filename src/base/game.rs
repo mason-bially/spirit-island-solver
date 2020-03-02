@@ -378,12 +378,15 @@ impl GameState {
                     TurnStep::Spirit(spirit_step) => {
                         match &spirit_step {
                             SpiritStep::Growth => {
+                                for (index, spirit_desc) in desc.spirits.iter().enumerate() {
+                                    spirit_desc.do_growth(self, index)?;
+                                }
 
                                 GameStep::Turn(turn, TurnStep::Spirit(SpiritStep::Income))
                             }
                             SpiritStep::Income => {
                                 for (index, spirit_desc) in desc.spirits.iter().enumerate() {
-                                    //spirit_desc.do_income(self, index)?;
+                                    spirit_desc.do_income(self, index)?;
                                 }
 
                                 GameStep::Turn(turn, TurnStep::Spirit(SpiritStep::Play))

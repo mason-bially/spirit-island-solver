@@ -118,6 +118,7 @@ pub struct PowerCard {
 #[derive(Clone)]
 pub struct PowerDeck {
     pub draw: Vec<PowerCard>,
+    pub pending: Vec<PowerCard>,
     pub discard: Vec<PowerCard>,
 }
 
@@ -125,6 +126,7 @@ impl PowerDeck {
     pub fn new() -> PowerDeck {
         PowerDeck {
             draw: Vec::new(),
+            pending: Vec::new(),
             discard: Vec::new(),
         }
     }
@@ -147,6 +149,15 @@ impl PowerDeck {
         }
 
         res
+    }
+
+    pub fn draw_into_pending(&mut self, count: usize) {
+        let drawn = self.draw(count);
+        self.pending.extend(drawn);
+    }
+
+    pub fn discard_pending(&mut self) {
+        self.discard.extend(self.pending.drain(..));
     }
 }
 
@@ -179,4 +190,14 @@ impl SpiritPowerDeck {
                 .map(|(index, desc)| PowerCard{ index, desc })
                 .collect();
     }
+
+    pub fn draw(&mut self, count: usize) -> Vec<PowerCard> {
+        let mut res = Vec::new();
+        for _ in 0..count {
+            res.insert(0, self.draw.pop().unwrap());
+        }
+
+        res
+    }
 }
+
