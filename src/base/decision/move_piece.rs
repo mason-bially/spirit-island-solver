@@ -30,12 +30,6 @@ pub struct PushDecision {
 
 impl Effect for PushDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        if self.may {
-            game.log(format!("may push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
-        }
-        else {
-            game.log(format!("push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
-        }
 
         // 1. Get possible source count
         let total_source_count: usize;
@@ -45,9 +39,16 @@ impl Effect for PushDecision {
 
             // 1a. Sanity check
             if total_source_count == 0 {
-                game.log_subeffect("no sources!".to_string());
+                game.log_effect(format!("push {} {} from {} (but no sources!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
                 return Ok(());
             }
+        }
+
+        if self.may {
+            game.log_decision(format!("may push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+        }
+        else {
+            game.log_decision(format!("push {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
         }
 
         // 2. Get the decision
@@ -116,13 +117,6 @@ pub struct GatherDecision {
 
 impl Effect for GatherDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        if self.may {
-            game.log(format!("may gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
-        }
-        else {
-            game.log(format!("gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
-        }
-
         // 1. Get possible target count
         let total_target_count: usize;
         {
@@ -134,10 +128,18 @@ impl Effect for GatherDecision {
 
             // 1a. Sanity check
             if total_target_count == 0 {
-                game.log_subeffect("no targets!".to_string());
+                game.log_effect(format!("gather {} {} from {} (but no targets!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
                 return Ok(());
             }
         }
+
+        if self.may {
+            game.log_decision(format!("may gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+        }
+        else {
+            game.log_decision(format!("gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+        }
+
 
         // 2. Get the decision
         let sequence = match game.consume_choice()?

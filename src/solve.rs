@@ -84,6 +84,7 @@ impl BasicStatistics {
                     first_best_game.push(ptr.decision_edge.clone());
                     parent = Weak::clone(&ptr.parent);
                 }
+                first_best_game.pop(); // the root node is an empty choice
                 first_best_game.reverse();
                 branch.stats.first_best_game = first_best_game;
             }
@@ -363,8 +364,9 @@ impl SolveEngine {
             self.resimulate_game(branch.stats.first_best_game.clone())?;
     
             println!("");
-            println!(" ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^ ");
-            println!("  first best game replay above  ");
+            println!(" ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^ ");
+            println!("  first best game replay above    ({} branches, {} choices)",
+                branch.stats.first_best_game.len(), branch.stats.first_best_game.iter().map(|s| s.len()).sum::<usize>());
             println!("");
             println!("  v: {},  d: {},  e: {}", branch.stats.victories, branch.stats.defeats, branch.stats.errors);
             println!("    min: {},  max: {}  ", branch.stats.min_score, branch.stats.max_score);

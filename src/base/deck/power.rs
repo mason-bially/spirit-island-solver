@@ -97,7 +97,7 @@ impl fmt::Display for PowerCardDescription {
 
 impl Effect for PowerCardDescription {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log(format!("playing power card |{}|", self));
+        game.log_effect(format!("playing power card |{}|", self));
 
         // actually run the effect as "ourself"
         (self.effect)(game)
