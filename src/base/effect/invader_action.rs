@@ -13,7 +13,7 @@ pub struct ExploreEffect {
 
 impl Effect for ExploreEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("Exploring in land {}.", self.land_index));
+        game.log_effect(format_args!("Exploring in land {}.", self.land_index));
 
         let adj_lands = game.table.desc.get_adjacent_lands(self.land_index);
         let will_explore = adj_lands.iter().any(|l|
@@ -45,7 +45,7 @@ pub struct BuildEffect {
 
 impl Effect for BuildEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("Building in land {}.", self.land_index));
+        game.log_effect(format_args!("Building in land {}.", self.land_index));
 
         let land = game.get_land(self.land_index)?;
 
@@ -79,7 +79,7 @@ pub struct RavageEffect {
 
 impl Effect for RavageEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("Ravaging in land {}.", self.land_index));
+        game.log_effect(format_args!("Ravaging in land {}.", self.land_index));
 
         let land = game.get_land(self.land_index)?;
 

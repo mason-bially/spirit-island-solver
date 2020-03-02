@@ -13,7 +13,7 @@ pub struct AddBlightEffect {
 
 impl Effect for AddBlightEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("blighting land {}.", self.land_index));
+        game.log_effect(format_args!("blighting land {}.", self.land_index));
 
         // 1. Remove blight from card
         if game.blight_remaining == 0 {
@@ -51,7 +51,7 @@ pub struct AddPresenceEffect {
 
 impl Effect for AddPresenceEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("adding presence to land {} for {}.", self.land_index, self.spirit));
+        game.log_effect(format_args!("adding presence to land {} for {}.", self.land_index, self.spirit));
 
         // Pre: presence has already been "picked up" for this effect.
         //   this is just about actually adding it to the board.
@@ -77,7 +77,7 @@ pub struct AddInvaderEffect {
 
 impl Effect for AddInvaderEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("adding {} {} invader(s) to {}.", self.count, self.kind, self.land_index));
+        game.log_effect(format_args!("adding {} {} invader(s) to {}.", self.count, self.kind, self.land_index));
 
         let land = game.get_land_mut(self.land_index)?;
 
@@ -102,7 +102,7 @@ pub struct AddDahanEffect {
 
 impl Effect for AddDahanEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("adding {} dahan to {}.", self.count, self.land_index));
+        game.log_effect(format_args!("adding {} dahan to {}.", self.count, self.land_index));
 
         let land = game.get_land_mut(self.land_index)?;
 

@@ -76,7 +76,7 @@ pub struct GainMinorPowerCardDecision {
 
 impl Effect for GainMinorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_decision(format!("gain minor power card for {} (from {}).", self.spirit_index, self.draw_count));
+        game.log_decision(format_args!("gain minor power card for {} (from {}).", self.spirit_index, self.draw_count));
 
         // 1. Setup the draw/pending state
         game.minor_powers.draw_into_pending(game.rng.get_rng(), self.draw_count);
@@ -124,7 +124,7 @@ pub struct GainMajorPowerCardDecision {
 
 impl Effect for GainMajorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_decision(format!("gain major power card for {} (from {}).", self.spirit_index, self.draw_count));
+        game.log_decision(format_args!("gain major power card for {} (from {}).", self.spirit_index, self.draw_count));
 
         return game.do_effect(NotImplementedEffect { what: "MAJOR POWER DRAFTING, no sacrifice, no major powers" });
 
@@ -174,7 +174,7 @@ pub struct GainPowerCardDecision {
 
 impl Effect for GainPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_decision(format!("gain power card for {}.", self.spirit_index));
+        game.log_decision(format_args!("gain power card for {}.", self.spirit_index));
 
         // 1. Choose minor or major
         let choice = match game.consume_choice()?

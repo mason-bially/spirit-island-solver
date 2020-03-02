@@ -114,7 +114,7 @@ impl Effect for DoCardPlaysDecision {
         // 1. Sanity check
         let pend_size = self.pending_size(game);
         if pend_size == 0 {
-            //game.log_effect(format!("playing cards... (but no cards to play)"));
+            game.log_effect(format_args!("playing cards... (but no cards to play)"));
             return Ok(());
         }
 

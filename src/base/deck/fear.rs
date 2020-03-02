@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::Rc,
+    sync::{Arc},
     clone::Clone,
     iter::*,
 };
@@ -26,7 +26,7 @@ pub struct FearCardDescription {
 
 #[derive(Clone)]
 pub struct FearCard {
-    pub desc: Rc<FearCardDescription>,
+    pub desc: Arc<FearCardDescription>,
     pub index: usize
 }
 
@@ -54,7 +54,7 @@ impl FearDeck {
     }
 
     pub fn init(&mut self, 
-            desc: &Vec<Rc<FearCardDescription>>,
+            desc: &Vec<Arc<FearCardDescription>>,
             mut rng: &mut dyn RngCore,
             fear_card_counts: (u8, u8, u8)) {
         let mut all_cards: Vec<FearCard> = desc.iter()

@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::{Rc},
+    sync::{Arc},
 };
 
 use crate::base::{
@@ -12,7 +12,7 @@ use crate::base::{
 
 pub fn make_board_a() -> BoardDescription {
     let mut lands = vec![
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Ocean,
             is_coastal: true,
@@ -26,7 +26,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 0,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Mountain,
             is_coastal: true,
@@ -40,7 +40,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 1,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Wetlands,
             is_coastal: true,
@@ -54,7 +54,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 2,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Jungle,
             is_coastal: true,
@@ -68,7 +68,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 3,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Sands,
             is_coastal: false,
@@ -82,7 +82,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 4,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Wetlands,
             is_coastal: false,
@@ -96,7 +96,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 5,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Mountain,
             is_coastal: false,
@@ -110,7 +110,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 6,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Sands,
             is_coastal: false,
@@ -124,7 +124,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_table: 7,
             parent_board_index: 0,
         }),
-        Rc::new(LandDescription {
+        Arc::new(LandDescription {
             adjacent: Vec::new(),
             kind: LandKind::Jungle,
             is_coastal: false,
@@ -140,17 +140,17 @@ pub fn make_board_a() -> BoardDescription {
         }),
     ];
 
-    (*Rc::get_mut(lands.get_mut(0).unwrap()).unwrap()).adjacent = vec![1, 2, 3];
+    (*Arc::get_mut(lands.get_mut(0).unwrap()).unwrap()).adjacent = vec![1, 2, 3];
 
-    (*Rc::get_mut(lands.get_mut(1).unwrap()).unwrap()).adjacent = vec![0, 2, 4, 5, 6];
-    (*Rc::get_mut(lands.get_mut(2).unwrap()).unwrap()).adjacent = vec![0, 1, 4, 3];
-    (*Rc::get_mut(lands.get_mut(3).unwrap()).unwrap()).adjacent = vec![0, 2, 4];
+    (*Arc::get_mut(lands.get_mut(1).unwrap()).unwrap()).adjacent = vec![0, 2, 4, 5, 6];
+    (*Arc::get_mut(lands.get_mut(2).unwrap()).unwrap()).adjacent = vec![0, 1, 4, 3];
+    (*Arc::get_mut(lands.get_mut(3).unwrap()).unwrap()).adjacent = vec![0, 2, 4];
 
-    (*Rc::get_mut(lands.get_mut(4).unwrap()).unwrap()).adjacent = vec![1, 2, 3, 5];
-    (*Rc::get_mut(lands.get_mut(5).unwrap()).unwrap()).adjacent = vec![1, 4, 6, 7, 8];
-    (*Rc::get_mut(lands.get_mut(6).unwrap()).unwrap()).adjacent = vec![1, 5, 8];
-    (*Rc::get_mut(lands.get_mut(7).unwrap()).unwrap()).adjacent = vec![5, 8];
-    (*Rc::get_mut(lands.get_mut(8).unwrap()).unwrap()).adjacent = vec![5, 6, 7];
+    (*Arc::get_mut(lands.get_mut(4).unwrap()).unwrap()).adjacent = vec![1, 2, 3, 5];
+    (*Arc::get_mut(lands.get_mut(5).unwrap()).unwrap()).adjacent = vec![1, 4, 6, 7, 8];
+    (*Arc::get_mut(lands.get_mut(6).unwrap()).unwrap()).adjacent = vec![1, 5, 8];
+    (*Arc::get_mut(lands.get_mut(7).unwrap()).unwrap()).adjacent = vec![5, 8];
+    (*Arc::get_mut(lands.get_mut(8).unwrap()).unwrap()).adjacent = vec![5, 6, 7];
 
     BoardDescription {
         name: "A",

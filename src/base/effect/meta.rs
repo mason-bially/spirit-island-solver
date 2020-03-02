@@ -14,7 +14,7 @@ pub struct NotImplementedEffect {
 
 impl Effect for NotImplementedEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("NOT IMPLEMENTED {}.", self.what));
+        game.log_effect(format_args!("NOT IMPLEMENTED {}.", self.what));
 
         Ok(())
     }

@@ -6,7 +6,7 @@ extern crate crypto;
 extern crate clap;
 
 use std::error::Error;
-use std::rc::Rc;
+use std::sync::{Arc};
 use rand::prelude::*;
 use rand_chacha::{ChaChaRng};
 use self::crypto::digest::Digest;
@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let map = Box::new(base::make_map(&content, vec!["A"]));
 
-    let description = Rc::new(base::GameDescription::new(content, adversary, spirits, map));
+    let description = Arc::new(base::GameDescription::new(content, adversary, spirits, map));
     let state = base::GameState::new(description, rng);
 
     let mut solver = solve::SolveEngine::new(&state,

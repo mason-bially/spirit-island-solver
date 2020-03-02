@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::{Rc},
+    sync::{Arc},
     iter::*,
 };
 
@@ -32,18 +32,18 @@ pub struct LandDescription {
 
 pub struct BoardDescription {
     pub name: &'static str,
-    pub lands: Vec<Rc<LandDescription>>,
+    pub lands: Vec<Arc<LandDescription>>,
 }
 
 pub struct TableDescription {
     pub boards: Vec<BoardDescription>,
-    pub lands: Vec<Rc<LandDescription>>,
+    pub lands: Vec<Arc<LandDescription>>,
     pub land_count: u8,
 }
 
 #[derive(Clone)]
 pub struct LandState {
-    pub desc: Rc<LandDescription>,
+    pub desc: Arc<LandDescription>,
 
     pub is_in_play: bool,
 
@@ -58,7 +58,7 @@ pub struct LandState {
 
 #[derive(Clone)]
 pub struct TableState {
-    pub desc: Rc<TableDescription>,
+    pub desc: Arc<TableDescription>,
 
     pub lands: Vec<LandState>,
 }
@@ -72,7 +72,7 @@ pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> 
     for board_name in board_names.into_iter() {
         let mut board = search_for_board(content, board_name).unwrap();
         for land in board.lands.iter_mut() {
-            let land_mut = Rc::get_mut(land).unwrap();
+            let land_mut = Arc::get_mut(land).unwrap();
             land_mut.index_on_table += land_count;
             land_mut.parent_board_index = board_count;
             
@@ -94,11 +94,11 @@ pub fn make_map(content: &Vec<Box<dyn ContentPack>>, board_names: Vec<&str>) -> 
 
 
 impl TableDescription {
-    pub fn get_land(&self, index: u8) -> Rc<LandDescription> {
+    pub fn get_land(&self, index: u8) -> Arc<LandDescription> {
         self.lands.get(index as usize).unwrap().clone()
     }
 
-    pub fn get_adjacent_lands(&self, adjacent_to_index: u8) -> Vec<Rc<LandDescription>> {
+    pub fn get_adjacent_lands(&self, adjacent_to_index: u8) -> Vec<Arc<LandDescription>> {
         self.lands.clone().into_iter()
             .filter(|l| l.adjacent.contains(&adjacent_to_index))
             .collect()
@@ -127,7 +127,7 @@ impl LandState {
 }
 
 impl TableState {
-    pub fn new(desc: Rc<TableDescription>) -> TableState {
+    pub fn new(desc: Arc<TableDescription>) -> TableState {
         let mut lands = Vec::new();
 
         for board in desc.boards.iter() {

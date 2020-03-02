@@ -14,7 +14,7 @@ pub struct DoDamageToLandEffect {
 
 impl Effect for DoDamageToLandEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("{} damage to land {}.", self.damage, self.land_index));
+        game.log_effect(format_args!("{} damage to land {}.", self.damage, self.land_index));
 
         // 1. Damage to land
         let blight_threshold = 2;
@@ -43,7 +43,7 @@ impl Effect for DoInvaderAttackEffect {
             return Ok(());
         }
 
-        //game.log_effect(format!("invaders attack in {}.", self.land_index));
+        game.log_effect(format_args!("invaders attack in {}.", self.land_index));
 
         let mut invader_damage: u16 = land.invaders.iter().map(|p| p.attack).sum();
 
@@ -87,7 +87,7 @@ impl Effect for DoDahanAttackEffect {
             return Ok(());
         }
 
-        //game.log_effect(format!("dahan attack in {}.", self.land_index));
+        game.log_effect(format_args!("dahan attack in {}.", self.land_index));
 
         let dahan_damage: u16 = land.dahan.iter().map(|p| p.attack).sum();
 

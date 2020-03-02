@@ -18,15 +18,15 @@ impl DefaultAdversaryDescription {
 pub fn invader_deck_setup_standard(game: &mut GameState)
 {
     let phase3 = game.invader.draw.iter().position(|&x| if let InvaderCard::Phase3(_, _) = x { true } else { false }).unwrap();
-    //game.log_effect(format!("Removing {{{}}}", game.invader.draw.get(phase3).unwrap()));
+    game.log_effect(format_args!("Removing {{{}}}", game.invader.draw.get(phase3).unwrap()));
     game.invader.draw.remove(phase3);
 
     let phase2 = game.invader.draw.iter().position(|&x| if let InvaderCard::Phase2(_) = x { true } else { false }).unwrap();
-    //game.log_effect(format!("Removing {{{}}}", game.invader.draw.get(phase2).unwrap()));
+    game.log_effect(format_args!("Removing {{{}}}", game.invader.draw.get(phase2).unwrap()));
     game.invader.draw.remove(phase2);
 
     let phase1 = game.invader.draw.iter().position(|&x| if let InvaderCard::Phase1(_) = x { true } else { false }).unwrap();
-    //game.log_effect(format!("Removing {{{}}}", game.invader.draw.get(phase1).unwrap()));
+    game.log_effect(format_args!("Removing {{{}}}", game.invader.draw.get(phase1).unwrap()));
     game.invader.draw.remove(phase1);
 }
 

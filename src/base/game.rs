@@ -1,7 +1,8 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::Rc,
+    fmt,
+    sync::{Arc},
     clone::Clone,
     collections::VecDeque,
 };
@@ -12,11 +13,11 @@ use super::*;
 pub struct GameDescription {
     pub content: Vec<Box<dyn ContentPack>>,
     pub adversary: Box<dyn AdversaryDescription>,
-    pub spirits: Vec<Rc<Box<dyn SpiritDescription>>>,
-    pub table: Rc<TableDescription>,
+    pub spirits: Vec<Arc<Box<dyn SpiritDescription>>>,
+    pub table: Arc<TableDescription>,
 
-    pub fear: Vec<Rc<FearCardDescription>>,
-    pub powers: Vec<Rc<PowerCardDescription>>,
+    pub fear: Vec<Arc<FearCardDescription>>,
+    pub powers: Vec<Arc<PowerCardDescription>>,
 }
 
 impl GameDescription {
@@ -36,11 +37,11 @@ impl GameDescription {
         GameDescription {
             content,
             adversary,
-            spirits: spirits.into_iter().map(Rc::new).collect(),
-            table: Rc::from(table),
+            spirits: spirits.into_iter().map(Arc::new).collect(),
+            table: Arc::from(table),
 
-            fear: fear_cards.into_iter().map(Rc::from).collect(),
-            powers: power_cards.into_iter().map(Rc::from).collect(),
+            fear: fear_cards.into_iter().map(Arc::from).collect(),
+            powers: power_cards.into_iter().map(Arc::from).collect(),
         }
     }
 }
@@ -49,7 +50,7 @@ impl GameDescription {
 
 #[derive(Clone)]
 pub struct GameState {
-    pub desc: Rc<GameDescription>,
+    pub desc: Arc<GameDescription>,
 
     pub rng: Box<dyn DeterministicRng>,
 
@@ -81,9 +82,9 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new(desc: Rc<GameDescription>, rng: Box<dyn DeterministicRng>) -> GameState {
+    pub fn new(desc: Arc<GameDescription>, rng: Box<dyn DeterministicRng>) -> GameState {
         GameState {
-            desc: Rc::clone(&desc),
+            desc: Arc::clone(&desc),
             rng,
 
             enable_logging: false,
@@ -120,19 +121,19 @@ impl GameState {
         }
     }
 
-    pub fn log_effect(&self, s: String) {
+    pub fn log_effect(&self, args: fmt::Arguments) {
         if self.enable_logging {
-            println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), s);
+            println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), args);
         }
     }
-    pub fn log_decision(&self, s: String) {
+    pub fn log_decision(&self, args: fmt::Arguments) {
         if self.enable_logging {
-            println!("   |{}* {}", "  ".repeat(self.effect_stack.len()), s);
+            println!("   |{}* {}", "  ".repeat(self.effect_stack.len()), args);
         }
     }
-    pub fn log_subeffect(&self, s: String) {
+    pub fn log_subeffect(&self, args: fmt::Arguments) {
         if self.enable_logging {
-            println!("   |{}- {}", "  ".repeat(self.effect_stack.len() + 1), s);
+            println!("   |{}- {}", "  ".repeat(self.effect_stack.len() + 1), args);
         }
     }
 
@@ -147,8 +148,8 @@ impl GameState {
             .get_mut(land_index as usize)
             .ok_or(StepFailure::InternalError("index out of range".to_string()))
     }
-    pub fn get_land_desc(&self, land_index: u8) -> Result<Rc<LandDescription>, StepFailure> {
-        Ok(Rc::clone(
+    pub fn get_land_desc(&self, land_index: u8) -> Result<Arc<LandDescription>, StepFailure> {
+        Ok(Arc::clone(
             self.desc.table.lands
                 .get(land_index as usize)
                 .ok_or(StepFailure::InternalError("index out of range".to_string()))?
@@ -159,7 +160,7 @@ impl GameState {
 
         Ok(adjacent_indexes.into_iter().map(|i| self.get_land(i).ok().unwrap()).collect())
     }
-    pub fn get_adjacent_lands_desc(&self, land_index: u8) -> Result<Vec<Rc<LandDescription>>, StepFailure> {
+    pub fn get_adjacent_lands_desc(&self, land_index: u8) -> Result<Vec<Arc<LandDescription>>, StepFailure> {
         Ok(self.desc.table
             .get_adjacent_lands(land_index))
     }
@@ -172,8 +173,8 @@ impl GameState {
         self.spirits.get_mut(spirit_index as usize)
             .ok_or(StepFailure::InternalError("index out of range".to_string()))
     }
-    pub fn get_spirit_desc(&self, spirit_index: u8) -> Result<Rc<Box<dyn SpiritDescription>>, StepFailure> {
-        Ok(Rc::clone(
+    pub fn get_spirit_desc(&self, spirit_index: u8) -> Result<Arc<Box<dyn SpiritDescription>>, StepFailure> {
+        Ok(Arc::clone(
             self.desc.spirits
                 .get(spirit_index as usize)
                 .ok_or(StepFailure::InternalError("index out of range".to_string()))?
@@ -324,13 +325,13 @@ impl GameState {
                 self.minor_powers.init(
                     self.desc.powers.iter()
                         .filter(|pcd| pcd.kind == PowerCardKind::Minor)
-                        .map(|pcd| Rc::clone(pcd))
+                        .map(|pcd| Arc::clone(pcd))
                         .collect(),
                     &mut self.rng.get_rng());
                 self.major_powers.init(
                     self.desc.powers.iter()
                         .filter(|pcd| pcd.kind == PowerCardKind::Major)
-                        .map(|pcd| Rc::clone(pcd))
+                        .map(|pcd| Arc::clone(pcd))
                         .collect(),
                     &mut self.rng.get_rng());
 
@@ -339,11 +340,11 @@ impl GameState {
             GameStep::SetupSpirit => {
                 for (index, spirit_desc) in desc.spirits.iter().enumerate() {
                     let spirit_index = index as u8;
-                    //self.log_effect(format!("Setting up spirit {} ({})", index, spirit_desc.name()));
+                    self.log_effect(format_args!("Setting up spirit {} ({})", index, spirit_desc.name()));
                     
                     let powers = self.desc.powers.iter()
                         .filter(|pcd| pcd.kind == PowerCardKind::Spirit(spirit_index))
-                        .map(|pcd| Rc::clone(pcd))
+                        .map(|pcd| Arc::clone(pcd))
                         .collect();
 
                     spirit_desc.do_setup(self, index)?;
@@ -360,7 +361,7 @@ impl GameState {
                 self.invader.draw_into_pending();
 
                 let &card = self.invader.pending.back().unwrap().first().unwrap();
-                //self.log_effect(format!("Invader Action Card: {}", card));
+                self.log_effect(format_args!("Invader Action Card: {}", card));
 
                 let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
                 for land in lands {
@@ -397,7 +398,7 @@ impl GameState {
                                 }
 
                                 for (index, spirit_desc) in desc.spirits.iter().enumerate() {
-                                    //self.log_effect(format!("State of {}:", spirit_desc.name()));
+                                    self.log_effect(format_args!("State of {}:", spirit_desc.name()));
                                     let spirit = self.get_spirit(index as u8)?;
                                     for card in spirit.deck.hand.iter() {
                                         //self.log_subeffect(format!(" $  |{}|", card.desc));
@@ -431,7 +432,7 @@ impl GameState {
 
                                 let terror_level = self.fear.terror_level();
 
-                                //self.log_effect(format!("Fear Card ({}): {}", terror_level, card.desc.name));
+                                self.log_effect(format_args!("Fear Card ({}): {}", terror_level, card.desc.name));
 
                                 self.do_effect_box(
                                     match terror_level {
@@ -451,7 +452,7 @@ impl GameState {
                                 // TODO: Technically the order here is a decision...
                                 let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
 
-                                //self.log_effect(format!("Invader Action Card: {}", card));
+                                self.log_effect(format_args!("Invader Action Card: {}", card));
                                 match &inv_kind {
                                     InvaderActionKind::Explore => {
                                         for land in lands {

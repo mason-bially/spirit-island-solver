@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::Rc,
+    sync::{Arc},
     fmt,
     clone::Clone,
     collections::VecDeque,
@@ -33,7 +33,7 @@ impl fmt::Display for InvaderCard {
 }
 
 impl InvaderCard {
-    pub fn can_target(&self, land: &Rc<LandDescription>) -> bool {
+    pub fn can_target(&self, land: &Arc<LandDescription>) -> bool {
         match *self {
             InvaderCard::Phase1(kind) => kind == land.kind,
             InvaderCard::Phase2(LandKind::Ocean) => land.kind != LandKind::Ocean && land.is_coastal,

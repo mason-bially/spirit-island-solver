@@ -14,7 +14,7 @@ pub struct PersistDefenseEffect {
 
 impl Effect for PersistDefenseEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("defending {} in land {}.", self.defense, self.land_index));
+        game.log_effect(format_args!("defending {} in land {}.", self.defense, self.land_index));
 
         // 1. Add defense to the land
         let land = game.get_land_mut(self.land_index)?;

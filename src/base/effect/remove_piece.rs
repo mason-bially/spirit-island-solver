@@ -15,7 +15,7 @@ pub struct RemoveBlightEffect {
 
 impl Effect for RemoveBlightEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("removing {} blight from land {}.", self.count, self.land_index));
+        game.log_effect(format_args!("removing {} blight from land {}.", self.count, self.land_index));
 
         // 1. Remove blight from land
         let land = game.get_land_mut(self.land_index)?;
@@ -44,9 +44,9 @@ pub struct RemoveDahanEffect {
 impl Effect for RemoveDahanEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         if self.destroyed {
-            //game.log_effect(format!("destoying dahan {} in {}.", self.dahan_index, self.land_index));
+            game.log_effect(format_args!("destoying dahan {} in {}.", self.dahan_index, self.land_index));
         } else {
-            //game.log_effect(format!("removing dahan {} in {}.", self.dahan_index, self.land_index));
+            game.log_effect(format_args!("removing dahan {} in {}.", self.dahan_index, self.land_index));
         }
 
         let land = game.get_land_mut(self.land_index)?;
@@ -80,9 +80,9 @@ pub struct RemoveInvaderEffect {
 impl Effect for RemoveInvaderEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         if self.destroyed {
-            //game.log_effect(format!("destoying invader {} in {}.", self.invader_index, self.land_index));
+            game.log_effect(format_args!("destoying invader {} in {}.", self.invader_index, self.land_index));
         } else {
-            //game.log_effect(format!("removing invader {} in {}.", self.invader_index, self.land_index));
+            game.log_effect(format_args!("removing invader {} in {}.", self.invader_index, self.land_index));
         }
 
         let land = game.get_land_mut(self.land_index)?;

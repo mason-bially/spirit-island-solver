@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::Rc,
+    sync::{Arc},
     fmt,
 };
 
@@ -145,7 +145,7 @@ pub enum PresenceState {
 
 #[derive(Clone)]
 pub struct SpiritState {
-    pub desc: Rc<Box<dyn SpiritDescription>>,
+    pub desc: Arc<Box<dyn SpiritDescription>>,
 
     pub presence: [PresenceState; 13],
     pub deck: SpiritPowerDeck,
@@ -156,9 +156,9 @@ pub struct SpiritState {
 }
 
 impl SpiritState {
-    pub fn new(desc: &Rc<Box<dyn SpiritDescription>>) -> SpiritState {
+    pub fn new(desc: &Arc<Box<dyn SpiritDescription>>) -> SpiritState {
         SpiritState {
-            desc: Rc::clone(desc),
+            desc: Arc::clone(desc),
 
             presence: [PresenceState::RemovedFromGame; 13],
             deck: SpiritPowerDeck::new(),

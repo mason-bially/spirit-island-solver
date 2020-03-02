@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use std::{
-    rc::Rc,
+    sync::{Arc},
     clone::Clone,
     any::Any,
     fmt,
@@ -97,7 +97,7 @@ impl fmt::Display for PowerCardDescription {
 
 impl Effect for PowerCardDescription {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        //game.log_effect(format!("playing power card |{}|", self));
+        game.log_effect(format_args!("playing power card |{}|", self));
 
         // actually run the effect as "ourself"
         (self.effect)(game)
@@ -110,7 +110,7 @@ impl Effect for PowerCardDescription {
 
 #[derive(Clone)]
 pub struct PowerCard {
-    pub desc: Rc<PowerCardDescription>,
+    pub desc: Arc<PowerCardDescription>,
     pub index: usize,
 }
 
@@ -132,7 +132,7 @@ impl PowerDeck {
     }
 
     pub fn init(&mut self, 
-            desc: Vec<Rc<PowerCardDescription>>,
+            desc: Vec<Arc<PowerCardDescription>>,
             mut rng: &mut dyn RngCore) {
         self.draw
             = desc.into_iter()
@@ -193,7 +193,7 @@ impl SpiritPowerDeck {
     }
 
     pub fn init(&mut self, 
-            desc: Vec<Rc<PowerCardDescription>>) {
+            desc: Vec<Arc<PowerCardDescription>>) {
         self.hand
             = desc.into_iter()
                 .enumerate()

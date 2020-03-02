@@ -42,15 +42,15 @@ impl Effect for DoDamageToDahanDecision {
 
         // 1. Sanity check
         if dahan.len() == 0 {
-            //game.log_effect(format!("{} damage to dahan in {} (but no dahan!).", self.damage, self.land_index));
+            game.log_effect(format_args!("{} damage to dahan in {} (but no dahan!).", self.damage, self.land_index));
             return Ok(());
         }
         
         if self.efficent {
-            //game.log_effect(format!("{} damage to dahan in {} (efficently).", self.damage, self.land_index));
+            game.log_effect(format_args!("{} damage to dahan in {} (efficently).", self.damage, self.land_index));
         }
         else {
-            //game.log_decision(format!("{} damage to dahan in {}.", self.damage, self.land_index));
+            game.log_decision(format_args!("{} damage to dahan in {}.", self.damage, self.land_index));
         }
 
         // 2. Get the damage decision
@@ -139,11 +139,11 @@ impl Effect for DoDamageToInvadersDecision {
 
         // 1. Sanity check
         if invaders.len() == 0 {
-            //game.log_effect(format!("{} damage to invaders in {} (but no invaders!).", self.damage, self.land_index));
+            game.log_effect(format_args!("{} damage to invaders in {} (but no invaders!).", self.damage, self.land_index));
             return Ok(());
         }
 
-        //game.log_decision(format!("{} damage to invaders in {}.", self.damage, self.land_index));
+        game.log_decision(format_args!("{} damage to invaders in {}.", self.damage, self.land_index));
 
         // 2. Get the damage decision
         let damage_layout: Vec<u16>
