@@ -12,6 +12,7 @@ pub enum DecisionChoice {
     
     TargetLand(u8),
     TargetPresence(u8),
+    TargetSpirit(u8),
 
     Damage(Vec<u16>),
     // for push/gather
@@ -19,12 +20,14 @@ pub enum DecisionChoice {
     PieceSequence(Vec<(u8, PieceKind, usize)>),
 }
 
+mod card_play;
 mod cascade_blight;
 mod do_damage;
 mod growth;
 mod meta;
 mod move_piece;
 
+pub use self::card_play::{DoCardPlayDecision, DoCardPlaysDecision, CardPlaysDecision};
 pub use self::cascade_blight::{CascadeBlightDecision};
 pub use self::do_damage::{DoDamageToDahanDecision, DoDamageToInvadersDecision};
 pub use self::growth::{ChooseGrowthDecision, GainMinorPowerCardDecision, GainMajorPowerCardDecision, GainPowerCardDecision};

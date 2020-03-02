@@ -52,7 +52,7 @@ impl fmt::Display for LandKind {
 }
 
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum TerrorLevel {
     I,
     II,
@@ -70,7 +70,7 @@ impl fmt::Display for TerrorLevel {
 }
 
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum PowerSpeed {
     Fast,
     Slow

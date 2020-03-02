@@ -128,6 +128,18 @@ fn card_drift_down_into_slumber (game: &mut GameState) -> Result<(), StepFailure
     game.do_effect(PersistDefenseEffect{land_index, defense})
 }
 
+fn card_drought (game: &mut GameState) -> Result<(), StepFailure> {
+    game.do_effect(NotImplementedEffect { what: "Drought" })
+}
+
+fn card_elemental_boon (game: &mut GameState) -> Result<(), StepFailure> {
+    game.do_effect(NotImplementedEffect { what: "Elemental Boon" })
+}
+
+fn card_encompassing_ward (game: &mut GameState) -> Result<(), StepFailure> {
+    game.do_effect(NotImplementedEffect { what: "Encompassing ward" })
+}
+
 pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
     vec![
         PowerCardDescription {
@@ -210,6 +222,33 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             target_filter: PowerTargetFilter::Land(|_| true),
 
             effect: card_drift_down_into_slumber,
+        },
+        PowerCardDescription {
+            name: "Drought",
+            kind: PowerCardKind::Minor,
+            elements: ElementMap::from_slice(&[Element::Sun, Element::Fire, Element::Earth]),
+            cost: 1, speed: PowerSpeed::Slow, range: Some(1),
+            target_filter: PowerTargetFilter::Land(|_| true),
+
+            effect: card_drought,
+        },
+        PowerCardDescription {
+            name: "Elemental Boon",
+            kind: PowerCardKind::Minor,
+            elements: ElementMap::from_slice(&[]),
+            cost: 1, speed: PowerSpeed::Fast, range: None,
+            target_filter: PowerTargetFilter::Spirit(|_| true),
+
+            effect: card_elemental_boon,
+        },
+        PowerCardDescription {
+            name: "Encompassing Ward",
+            kind: PowerCardKind::Minor,
+            elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Earth]),
+            cost: 1, speed: PowerSpeed::Fast, range: None,
+            target_filter: PowerTargetFilter::Spirit(|_| true),
+
+            effect: card_encompassing_ward,
         },
     ]
 }

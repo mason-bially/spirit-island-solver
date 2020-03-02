@@ -1,7 +1,10 @@
 use std::{
     error::Error,
     cmp::*,
-    sync::{Arc, Weak, Mutex},
+    sync::{
+        Arc, Weak, Mutex,
+        atomic::{Ordering, AtomicUsize},
+    },
     collections::{VecDeque},
 };
 
@@ -46,11 +49,6 @@ impl BasicStatistics {
         self.defeats += other.defeats;
         self.errors += other.errors;
 
-        let total = self.victories + self.defeats + self.errors;
-        if total > 1000 {
-            println!("merge of {} states", total);
-        }
-
         if other.max_score > self.max_score {
             self.first_best_game = other.first_best_game.clone();
         }
@@ -70,8 +68,8 @@ impl BasicStatistics {
                 do_score = true;
                 branch.stats.defeats += 1;
             },
-            _ => {
-                //println!("FAILURE: {}", fail); // HACK
+            fail => {
+                println!("FAILURE: {}", fail); // HACK
                 do_score = false;
                 branch.stats.errors += 1;
             },
@@ -152,6 +150,8 @@ pub struct SolveEngine {
     init_state: GameState,
     init_branch: Arc<Mutex<SolveBranch>>,
 
+    branches: AtomicUsize,
+
     strategy: Box<dyn SolveStrategy>
 }
 
@@ -160,6 +160,8 @@ impl SolveEngine {
         SolveEngine {
             init_state: init_state.clone(),
             init_branch: Arc::new(Mutex::new(SolveBranch::new(Weak::new(), init_state, VecDeque::new()))),
+
+            branches: AtomicUsize::new(1),
 
             strategy: strategy,
         }
@@ -213,6 +215,10 @@ impl SolveEngine {
             match working_state.step() {
                 Ok(_) => {
                     working_state.advance()?;
+                    let prev = self.branches.fetch_add(1, Ordering::Relaxed);
+                    if prev % 10000 == 0 {
+                        println!("passing {} branches", prev);
+                    }
                     branch.branches.push(Arc::new(Mutex::new(SolveBranch::new(Weak::clone(&parent), &working_state, choices))));
                 }
                 Err(StepFailure::DecisionRequired) => {

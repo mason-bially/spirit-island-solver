@@ -392,6 +392,9 @@ impl GameState {
                                 GameStep::Turn(turn, TurnStep::Spirit(SpiritStep::Play))
                             }
                             SpiritStep::Play => {
+                                for index in 0..desc.spirits.len() {
+                                    self.do_effect(CardPlaysDecision{spirit_index: index as u8})?;
+                                }
 
                                 for (index, spirit_desc) in desc.spirits.iter().enumerate() {
                                     self.log_effect(format!("State of {}:", spirit_desc.name()));
@@ -409,6 +412,7 @@ impl GameState {
                         }
                     }
                     TurnStep::FastPower => {
+                        self.do_effect(DoCardPlaysDecision{power_speed: PowerSpeed::Fast})?;
 
                         GameStep::Turn(turn, TurnStep::Invader(InvaderStep::BlightedIsland))
                     }
@@ -476,12 +480,17 @@ impl GameState {
                         }
                     }
                     TurnStep::SlowPower => {
+                        self.do_effect(DoCardPlaysDecision{power_speed: PowerSpeed::Slow})?;
 
                         GameStep::Turn(turn, TurnStep::TimePasses)
                     }
                     TurnStep::TimePasses => {
                         for land in self.table.lands.iter_mut() {
                             land.time_passes();
+                        }
+
+                        for spirit in self.spirits.iter_mut() {
+                            spirit.deck.discard_pending();
                         }
 
                         GameStep::Turn(turn + 1, TurnStep::Spirit(SpiritStep::Growth))
