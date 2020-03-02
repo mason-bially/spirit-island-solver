@@ -53,6 +53,8 @@ pub struct GameState {
 
     rng: Box<dyn DeterministicRng>,
 
+    pub enable_logging: bool,
+
     pub step: GameStep,
     pub next_step: GameStep,
     pub game_over_reason: Option<String>,
@@ -76,14 +78,6 @@ pub struct GameState {
     pub minor_powers: PowerDeck,
     pub major_powers: PowerDeck,
 
-    /*
-    fears: SimpleDeck<Box<dyn Fear>>,
-    fears_pending: Vec<Box<dyn Fear>>,
-    fear_counts: (u8, u8, u8),
-
-    minor_powers: SimpleDeck<Box<dyn Power>>,
-    major_powers: SimpleDeck<Box<dyn Power>>,
-    */
 }
 
 impl GameState {
@@ -91,6 +85,8 @@ impl GameState {
         GameState {
             desc: Rc::clone(&desc),
             rng,
+
+            enable_logging: false,
 
             step: GameStep::Init,
             next_step: GameStep::Init,
@@ -125,10 +121,14 @@ impl GameState {
     }
 
     pub fn log(&self, s: String) {
-        println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), s);
+        if self.enable_logging {
+            println!("   |{}- {}", "  ".repeat(self.effect_stack.len()), s);
+        }
     }
     pub fn log_subeffect(&self, s: String) {
-        println!("   |{}- {}", "  ".repeat(self.effect_stack.len() + 1), s);
+        if self.enable_logging {
+            println!("   |{}- {}", "  ".repeat(self.effect_stack.len() + 1), s);
+        }
     }
 
 
@@ -268,7 +268,9 @@ impl GameState {
 
     pub fn step(&mut self) -> Result<(), StepFailure> {
         let step = self.step;
-        println!("---+-{:-^70}-----", format!("-  {}  -", step));
+        if self.enable_logging {
+            println!("---+-{:-^70}-----", format!("-  {}  -", step));
+        }
 
         let desc = self.desc.clone();
 
