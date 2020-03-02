@@ -4,7 +4,7 @@ use std::{
     fmt,
 };
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum InvaderStep {
     BlightedIsland,
     Event(u8, u8),
@@ -13,14 +13,14 @@ pub enum InvaderStep {
     InvaderAdvance,
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum SpiritStep {
     Growth,
     Income,
     Play,
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum TurnStep {
     Spirit(SpiritStep),
     FastPower,
@@ -29,7 +29,7 @@ pub enum TurnStep {
     TimePasses,
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum GameStep {
     Init,
     SetupSpirit,

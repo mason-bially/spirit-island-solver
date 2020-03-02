@@ -1,5 +1,6 @@
 use std::{
     error::Error,
+    cmp::*,
     sync::{Arc, Weak, Mutex},
     collections::{VecDeque},
 };
@@ -14,11 +15,16 @@ pub trait SolveStrategy {
 }
 
 
-#[derive(Hash, Copy, Clone)]
+#[derive(Clone)]
 pub struct BasicStatistics {
     pub victories: usize,
     pub defeats: usize,
     pub errors: usize,
+
+    pub min_score: i16,
+    pub max_score: i16,
+
+    pub first_best_game: Vec<VecDeque<DecisionChoice>>,
 }
 
 impl BasicStatistics {
@@ -27,29 +33,66 @@ impl BasicStatistics {
             victories: 0,
             defeats: 0,
             errors: 0,
+
+            min_score: std::i16::MAX,
+            max_score: std::i16::MIN,
+
+            first_best_game: Vec::new(),
         }
     }
 
-    pub fn merge(&self, other: &BasicStatistics) -> BasicStatistics {
-        BasicStatistics {
-            victories: self.victories + other.victories,
-            defeats: self.defeats + other.defeats,
-            errors: self.errors + other.errors,
+    pub fn merge(&mut self, other: &BasicStatistics) {
+        self.victories += other.victories;
+        self.defeats += other.defeats;
+        self.errors += other.errors;
+
+        if other.max_score > self.max_score {
+            self.first_best_game = other.first_best_game.clone();
         }
+
+        self.min_score = min(self.min_score, other.min_score);
+        self.max_score = max(self.max_score, other.max_score);
     }
 
-    pub fn consume(&mut self, terminal: StepFailure) {
+    pub fn consume(branch: &mut SolveBranch, choices: VecDeque<DecisionChoice>, game_state: &GameState, terminal: StepFailure) -> Result<(), Box<dyn Error>> {
+        let do_score;
         match terminal {
             StepFailure::GameOverVictory => {
-                self.victories += 1;
+                do_score = true;
+                branch.stats.victories += 1;
             },
             StepFailure::GameOverDefeat => {
-                self.defeats += 1;
+                do_score = true;
+                branch.stats.defeats += 1;
             },
             _ => {
-                self.errors += 1;
+                do_score = false;
+                branch.stats.errors += 1;
             },
         };
+
+        if do_score {
+            let score = game_state.score_game();
+            if score > branch.stats.max_score {
+                let mut first_best_game = Vec::new();
+                first_best_game.push(choices);
+                first_best_game.push(branch.decision_edge.clone());
+                let mut parent = Weak::clone(&branch.parent);
+                while let Some(ptr) = parent.upgrade() {
+                    let ptr = ptr.lock()
+                        .or(Err(Box::<dyn std::error::Error>::from("Could not obtain parent lock.")))?;
+                    first_best_game.push(ptr.decision_edge.clone());
+                    parent = Weak::clone(&ptr.parent);
+                }
+                first_best_game.reverse();
+                branch.stats.first_best_game = first_best_game;
+            }
+
+            branch.stats.min_score = min(branch.stats.min_score, score);
+            branch.stats.max_score = max(branch.stats.max_score, score);
+        }
+
+        Ok(())
     }
 }
 
@@ -99,6 +142,7 @@ impl SolveBranch {
 }
 
 pub struct SolveEngine {
+    init_state: GameState,
     init_branch: Arc<Mutex<SolveBranch>>,
 
     strategy: Box<dyn SolveStrategy>
@@ -107,6 +151,7 @@ pub struct SolveEngine {
 impl SolveEngine {
     pub fn new(init_state: &GameState, strategy: Box<dyn SolveStrategy>) -> SolveEngine {
         SolveEngine {
+            init_state: init_state.clone(),
             init_branch: Arc::new(Mutex::new(SolveBranch::new(Weak::new(), init_state, VecDeque::new()))),
 
             strategy: strategy,
@@ -166,7 +211,7 @@ impl SolveEngine {
                     self.do_branch_expand(branch, Weak::clone(&parent), choices)?;
                 },
                 Err(terminal) => {
-                    branch.stats.consume(terminal);
+                    BasicStatistics::consume(branch, choices, &working_state, terminal)?;
                 },
             };
         }
@@ -180,10 +225,10 @@ impl SolveEngine {
     }
 
     pub fn do_branch_finalize(&self, branch: &mut SolveBranch) -> Result<(), Box<dyn Error>> {
-        let mut current_stats = branch.stats;
+        let current_stats = &mut branch.stats;
 
         for sub_branch in branch.branches.iter() {
-            self.do_branch(sub_branch)?;
+            self.do_branch(&sub_branch)?;
 
             let sub_branch = sub_branch.lock()
                 .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
@@ -192,10 +237,9 @@ impl SolveEngine {
                 return Err(Box::<dyn std::error::Error>::from("Sub branch did not finalize!."));
             }
 
-            current_stats = current_stats.merge(&sub_branch.stats);
+            current_stats.merge(&sub_branch.stats);
         }
 
-        branch.stats = current_stats;
         branch.branches.clear();
         branch.state = SolveBranchState::Finalized;
 
@@ -217,6 +261,25 @@ impl SolveEngine {
             self.do_branch_expand(&mut branch, weak, VecDeque::new())?;
         }
 
+        // We need to check all sub states
+        if branch.state == SolveBranchState::Expanded {
+            let mut sub_complete = true;
+
+            for sub_branch in branch.branches.iter() {
+                let sub_branch = sub_branch.lock()
+                    .or(Err(Box::<dyn std::error::Error>::from("Could not obtain sub-branch lock.")))?;
+
+                if sub_branch.state != SolveBranchState::Finalized {
+                    sub_complete = false;
+                    break;
+                }
+            }
+
+            if sub_complete {
+                branch.state = SolveBranchState::Completed;
+            }
+        }
+
         // We need to consume all the child branches
         if branch.state == SolveBranchState::Completed {
             self.do_branch_finalize(&mut branch)?;
@@ -228,20 +291,64 @@ impl SolveEngine {
     pub fn recurse_branches(&self, branch: &Arc<Mutex<SolveBranch>>) -> Result<(), Box<dyn Error>> {
         self.do_branch(branch)?;
 
+        // We do it this way to prevent recursive downlocking
+        let sub_branches;
         {
-            let mut branch = branch.lock()
+            let branch = branch.lock()
                 .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
     
-            for sub_branch in branch.branches.iter() {
-                self.recurse_branches(sub_branch)?;
-            }
+            sub_branches = branch.branches.clone();
+        }
 
-            branch.state = SolveBranchState::Completed;
+        for sub_branch in sub_branches.iter() {
+            self.recurse_branches(sub_branch)?;
         }
         
         self.do_branch(branch)?;
 
         Ok(())
+    }
+
+    pub fn resimulate_game(&self, mut choices: Vec<VecDeque<DecisionChoice>>) -> Result<(), Box<dyn Error>> {
+        choices.reverse();
+
+        let mut current_state = self.init_state.clone();
+        current_state.enable_logging = true;
+
+        let mut pull_decision = false;
+        loop {
+            let mut working_state = current_state.clone();
+            if pull_decision {
+                pull_decision = false;
+                // TODO fix my fucking errors
+                working_state.choices = choices.pop().unwrap();
+            }
+
+            let res = working_state.step();
+
+            match res {
+                Ok(_) => {
+                    current_state = working_state;
+                    current_state.advance()?;
+                    continue;
+                },
+                Err(StepFailure::DecisionRequired) => {
+                    pull_decision = true;
+                    continue;
+                },
+                Err(StepFailure::GameOverVictory) => {
+                    println!("Victory!    {}", working_state.game_over_reason.as_ref().unwrap());
+                    return Ok(());
+                }
+                Err(StepFailure::GameOverDefeat) => {
+                    println!("Defeat :(   {}", working_state.game_over_reason.as_ref().unwrap());
+                    return Ok(());
+                }
+                Err(fail) => {
+                    return Err(Box::<dyn std::error::Error>::from(fail));
+                }
+            }
+        };
     }
 
     pub fn main(&mut self) -> Result<(), Box<dyn Error>> {
@@ -252,8 +359,16 @@ impl SolveEngine {
         {
             let branch = self.init_branch.lock()
                 .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
+
+            self.resimulate_game(branch.stats.first_best_game.clone())?;
     
-            println!("v: {}, d: {}, e: {}", branch.stats.victories, branch.stats.defeats, branch.stats.errors);
+            println!("");
+            println!(" ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^ ");
+            println!("  first best game replay above  ");
+            println!("");
+            println!("  v: {},  d: {},  e: {}", branch.stats.victories, branch.stats.defeats, branch.stats.errors);
+            println!("    min: {},  max: {}  ", branch.stats.min_score, branch.stats.max_score);
+            println!("");
         }
 
         Ok(())
@@ -279,8 +394,6 @@ impl SolveStrategy for SimpleDecisionMaker {
         let undecided_decision = state.effect_stack.last().unwrap();
         let decision = undecided_decision.as_decision().unwrap();
 
-        let choices = decision.valid_choices(state);
-
-        choices
+        decision.valid_choices(state)
     }
 }

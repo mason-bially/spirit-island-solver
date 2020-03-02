@@ -214,6 +214,33 @@ impl GameState {
         Err(StepFailure::GameOverVictory)
     }
 
+    pub fn score_game(&self) -> i16 {
+        // TODO: calculate this
+        let difficulty: i16 = 0;
+
+        let mut score = 0;
+
+        if self.step == GameStep::Victory {
+            score += 5 * difficulty;
+            score += 10;
+            score += 2 * self.invader.draw.len() as i16;
+        } else {
+            score += 2 * difficulty;
+
+            let invader_cards_not_in_deck: i16
+                = (self.invader.pending.iter().map(|x| x.len()).sum::<usize>() + self.invader.discard.len()) as i16;
+            score += 1 * invader_cards_not_in_deck;
+        }
+
+        let players: i16 = self.spirits.len() as i16;
+        let living_dahan: i16 = self.table.lands.iter().map(|l| l.dahan.len()).sum::<usize>() as i16;
+        score += 1 * (living_dahan / players);
+        let blight: i16 = self.table.lands.iter().map(|l| l.tokens[TokenKind::Blight]).sum::<u8>() as i16;
+        score -= 1 * (blight / players);
+
+        score
+    }
+
     pub fn step_to_next_event(&mut self) -> Result<InvaderStep, StepFailure> {
         Ok(self.step_to_next_fear()?)
     }
