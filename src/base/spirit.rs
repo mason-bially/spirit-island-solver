@@ -122,7 +122,7 @@ impl<T> std::ops::IndexMut<Element> for ElementMap<T>  {
 
 
 
-pub trait SpiritDescription {
+pub trait SpiritDescription : Send + Sync {
     fn name(&self) -> &'static str;
     fn all_names(&self) -> &'static [&'static str];
 

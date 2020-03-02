@@ -4,7 +4,7 @@ use std::{
 
 use super::*;
 
-pub trait Effect {
+pub trait Effect : Send + Sync {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure>;
 
     fn box_clone(&self) -> Box<dyn Effect>;

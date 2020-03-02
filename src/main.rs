@@ -3,6 +3,7 @@
 #[macro_use]
 extern crate simple_error;
 extern crate crypto;
+extern crate crossbeam;
 extern crate clap;
 
 use std::error::Error;
@@ -66,7 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut solver = solve::SolveEngine::new(&state,
         solve::SimpleDecisionMaker::new());
 
-    solver.main()?;
+    solver.main(16)?;
 
     Ok(())
 }

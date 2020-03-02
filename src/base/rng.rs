@@ -10,7 +10,7 @@ use rand_chacha::{ChaChaRng};
     Our RNG needs to be deterministic and copyable.
 */
 
-pub trait DeterministicRng {
+pub trait DeterministicRng : Send + Sync {
     fn get_rng<'a>(&'a mut self) -> &'a mut dyn RngCore;
     fn box_clone(&self) -> Box<dyn DeterministicRng>;
 }

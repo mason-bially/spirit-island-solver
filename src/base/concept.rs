@@ -81,14 +81,14 @@ pub trait EventCardDescription {
 
 }
 
-pub trait AdversaryDescription {
+pub trait AdversaryDescription : Send + Sync {
     fn fear_cards(&self) -> (u8, u8, u8);
     fn invader_steps(&self) -> Vec<InvaderActionKind>;
 
     fn setup(&self, game: &mut GameState);
 }
 
-pub trait ContentPack {
+pub trait ContentPack : Send + Sync {
     fn get_spirits(&self) -> Vec<Box<dyn SpiritDescription>>;
     fn get_boards(&self) -> Vec<BoardDescription>;
 

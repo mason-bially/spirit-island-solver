@@ -1,6 +1,7 @@
 use std::{
     error::Error,
     cmp::*,
+    thread,
     sync::{
         Arc, Weak, Mutex,
         atomic::{Ordering, AtomicUsize},
@@ -9,11 +10,12 @@ use std::{
     time::Instant,
 };
 
+use crossbeam::unbounded;
+
 use crate::base::{GameState, StepFailure, DecisionChoice};
 
 
-
-pub trait SolveStrategy {
+pub trait SolveStrategy : Send + Sync {
     // The list of decisions to try in order
     fn decide(&self, state: &GameState) -> Vec<DecisionChoice>;
 }
@@ -50,12 +52,29 @@ impl BasicStatistics {
         self.defeats += other.defeats;
         self.errors += other.errors;
 
-        if other.max_score > self.max_score {
+        if other.max_score > self.max_score && other.first_best_game.len() != 0 {
             self.first_best_game = other.first_best_game.clone();
         }
 
         self.min_score = min(self.min_score, other.min_score);
         self.max_score = max(self.max_score, other.max_score);
+    }
+
+    fn collect_first_best_game(branch: &mut SolveBranch, choices: VecDeque<DecisionChoice>) -> Result<Vec<VecDeque<DecisionChoice>>, Box<dyn Error>> {
+        // TODO make this not deadlock (though we currently are try_locking for a reason)
+        let mut first_best_game = Vec::new();
+        first_best_game.push(choices);
+        first_best_game.push(branch.decision_edge.clone());
+        let mut parent = Weak::clone(&branch.parent);
+        while let Some(ptr) = parent.upgrade() {
+            let ptr = ptr.try_lock()
+                .or(Err(Box::<dyn std::error::Error>::from("Could not obtain parent lock.")))?;
+            first_best_game.push(ptr.decision_edge.clone());
+            parent = Weak::clone(&ptr.parent);
+        }
+        first_best_game.pop(); // the root node is an empty choice
+        first_best_game.reverse();
+        return Ok(first_best_game);
     }
 
     pub fn consume(branch: &mut SolveBranch, choices: VecDeque<DecisionChoice>, game_state: &GameState, terminal: StepFailure) -> Result<(), Box<dyn Error>> {
@@ -78,20 +97,11 @@ impl BasicStatistics {
 
         if do_score {
             let score = game_state.score_game();
+
             if score > branch.stats.max_score {
-                let mut first_best_game = Vec::new();
-                first_best_game.push(choices);
-                first_best_game.push(branch.decision_edge.clone());
-                let mut parent = Weak::clone(&branch.parent);
-                while let Some(ptr) = parent.upgrade() {
-                    let ptr = ptr.lock()
-                        .or(Err(Box::<dyn std::error::Error>::from("Could not obtain parent lock.")))?;
-                    first_best_game.push(ptr.decision_edge.clone());
-                    parent = Weak::clone(&ptr.parent);
+                if let Ok(first_best_game) = BasicStatistics::collect_first_best_game(branch, choices) {
+                    branch.stats.first_best_game = first_best_game;
                 }
-                first_best_game.pop(); // the root node is an empty choice
-                first_best_game.reverse();
-                branch.stats.first_best_game = first_best_game;
             }
 
             branch.stats.min_score = min(branch.stats.min_score, score);
@@ -147,33 +157,18 @@ impl SolveBranch {
     }
 }
 
-pub struct SolveEngine {
-    init_state: GameState,
-    init_branch: Arc<Mutex<SolveBranch>>,
+struct SolveEngineShared {
+    pub init_branch: Arc<Mutex<SolveBranch>>,
+    pub strategy: Box<dyn SolveStrategy>,
 
-    branches: AtomicUsize,
-    steps: AtomicUsize,
+    pub branches: AtomicUsize,
+    pub steps: AtomicUsize,
 
-    last_update: Mutex<Instant>,
-
-    strategy: Box<dyn SolveStrategy>,
+    pub last_update: Mutex<Instant>,
 }
 
-impl SolveEngine {
-    pub fn new(init_state: &GameState, strategy: Box<dyn SolveStrategy>) -> SolveEngine {
-        SolveEngine {
-            init_state: init_state.clone(),
-            init_branch: Arc::new(Mutex::new(SolveBranch::new(Weak::new(), init_state.clone(), VecDeque::new()))),
-
-            steps: AtomicUsize::new(0),
-            branches: AtomicUsize::new(1),
-
-            last_update: Mutex::new(Instant::now()),
-
-            strategy: strategy,
-        }
-    }
-
+impl SolveEngineShared {
+    
     pub fn do_branch_execute(&self, branch: &mut SolveBranch) -> Result<(), Box<dyn Error>> {
         loop {
             let mut working_state = branch.game_state.clone();
@@ -276,7 +271,7 @@ impl SolveEngine {
         Ok(())
     }
 
-    pub fn do_branch(&self, branch: &Arc<Mutex<SolveBranch>>) -> Result<(), Box<dyn Error>> {
+    pub fn do_branch(&self, branch: &Arc<Mutex<SolveBranch>>) -> Result<SolveBranchState, Box<dyn Error>> {
         let weak = Arc::downgrade(&branch);
         let mut branch = branch.lock()
             .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
@@ -315,11 +310,44 @@ impl SolveEngine {
             self.do_branch_finalize(&mut branch)?;
         }
 
-        Ok(())
+        Ok(branch.state)
     }
 
+}
+
+
+pub struct SolveEngine {
+    init_state: GameState,
+
+    shared: Arc<SolveEngineShared>,
+}
+
+enum SolveWork {
+    Execute(Arc<Mutex<SolveBranch>>),
+    Finalize(Arc<Mutex<SolveBranch>>),
+    Terminate,
+}
+
+impl SolveEngine {
+    pub fn new(init_state: &GameState, strategy: Box<dyn SolveStrategy>) -> SolveEngine {
+        SolveEngine {
+            init_state: init_state.clone(),
+
+            shared: Arc::new(SolveEngineShared {
+                strategy: strategy,
+                init_branch: Arc::new(Mutex::new(SolveBranch::new(Weak::new(), init_state.clone(), VecDeque::new()))),
+
+                steps: AtomicUsize::new(0),
+                branches: AtomicUsize::new(1),
+    
+                last_update: Mutex::new(Instant::now()),
+            }),
+        }
+    }
+
+    // single threaded recursive
     pub fn recurse_branches(&self, branch: &Arc<Mutex<SolveBranch>>) -> Result<(), Box<dyn Error>> {
-        self.do_branch(branch)?;
+        self.shared.do_branch(branch)?;
 
         // We do it this way to prevent recursive downlocking
         let sub_branches;
@@ -334,7 +362,7 @@ impl SolveEngine {
             self.recurse_branches(sub_branch)?;
         }
         
-        self.do_branch(branch)?;
+        self.shared.do_branch(branch)?;
 
         Ok(())
     }
@@ -381,19 +409,75 @@ impl SolveEngine {
         };
     }
 
-    pub fn main(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn main(&mut self, threads: usize) -> Result<(), Box<dyn Error>> {
         // TODO use strtaegy to decide on execution order
         // TODO have parallel worker threads
 
-        let start = Instant::now();
         {
-            self.recurse_branches(&self.init_branch)?;
+            let (sender, reciever) = unbounded::<SolveWork>();
+    
+            // TODO proper Result<> handling
+            let mut thread_handles = Vec::new();
+            for _id in 0..threads {
+                let shared = Arc::clone(&self.shared);
+                let (sender, reciever) = (sender.clone(), reciever.clone());
+                thread_handles.push(thread::spawn(move || {
+                    while let Ok(work) = reciever.recv() {
+                        match work {
+                            SolveWork::Execute(branch) => {
+                                shared.do_branch(&branch).unwrap();
+
+                                let sub_branches;
+                                {
+                                    let branch = branch.lock()
+                                        .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))
+                                        .ok().unwrap();
+                            
+                                    sub_branches = branch.branches.clone();
+                                }
+
+                                for sub_branch in sub_branches {
+                                    sender.send(SolveWork::Execute(sub_branch)).unwrap();
+                                }
+
+                                sender.send(SolveWork::Finalize(branch)).unwrap();
+                            }
+                            SolveWork::Finalize(branch) => {
+                                // TODO attempt reschedule according to strategy
+                                let res = shared.do_branch(&branch).unwrap();
+
+                                if res != SolveBranchState::Finalized {
+                                    sender.send(SolveWork::Execute(branch)).unwrap();
+                                } else if Arc::ptr_eq(&branch, &shared.init_branch) {
+                                    // This is a finalized root:
+                                    for _ in 0..threads {
+                                        // TODO use a Mutex or Signal or something
+                                        sender.send(SolveWork::Terminate).unwrap();
+                                    }
+                                }
+                            }
+                            SolveWork::Terminate => {
+                                break;
+                            }
+                        }
+                    }
+                }));
+            }
+    
+            let start = Instant::now();
+            {
+                sender.send(SolveWork::Execute(Arc::clone(&self.shared.init_branch)));
+
+                for thread_handle in thread_handles {
+                    thread_handle.join();
+                }
+            }
+            let elapsed = start.elapsed();
+            println!("Elapsed: {:.2}s", elapsed.as_secs_f64());
         }
-        let elapsed = start.elapsed();
-        println!("Elapsed: {:.2}s", elapsed.as_secs_f64());
 
         {
-            let branch = self.init_branch.lock()
+            let branch = self.shared.init_branch.lock()
                 .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
 
             self.resimulate_game(branch.stats.first_best_game.clone())?;
