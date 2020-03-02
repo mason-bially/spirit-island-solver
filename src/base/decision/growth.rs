@@ -94,7 +94,7 @@ impl Effect for GainMinorPowerCardDecision {
 
         // 3. Move card
         let card = game.minor_powers.pending.remove(choice);
-        //game.log_subeffect(format!("drafted |{}|.", card.desc));
+        game.log_effect(format_args!("drafted |{}|.", card.desc));
         game.get_spirit_mut(self.spirit_index)?.deck.hand.push(card);
 
         game.minor_powers.discard_pending();

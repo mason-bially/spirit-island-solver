@@ -97,7 +97,7 @@ impl Effect for DoDamageToDahanDecision {
         }
 
         if damage_remaining != 0 {
-            //game.log_subeffect(format!("{} damage to dahan in {} spilled over.", damage_remaining, self.land_index));
+            game.log_effect(format_args!("{} damage to dahan in {} spilled over.", damage_remaining, self.land_index));
         }
 
         Ok(())
@@ -186,7 +186,7 @@ impl Effect for DoDamageToInvadersDecision {
         }
 
         if damage_remaining != 0 {
-            //game.log_subeffect(format!("{} damage to dahan in {} spilled over.", damage_remaining, self.land_index));
+            game.log_effect(format_args!("{} damage to dahan in {} spilled over.", damage_remaining, self.land_index));
         }
 
         Ok(())

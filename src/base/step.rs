@@ -88,6 +88,7 @@ impl fmt::Display for GameStep {
 
 
 // The state of the game state is invalid
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub enum StepFailure {
     InternalError(String),
     RulesViolation(String),

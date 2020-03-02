@@ -401,10 +401,10 @@ impl GameState {
                                     self.log_effect(format_args!("State of {}:", spirit_desc.name()));
                                     let spirit = self.get_spirit(index as u8)?;
                                     for card in spirit.deck.hand.iter() {
-                                        //self.log_subeffect(format!(" $  |{}|", card.desc));
+                                        self.log_effect(format_args!(" $  |{}|", card.desc));
                                     }
                                     for card in spirit.deck.pending.iter() {
-                                        //self.log_subeffect(format!(">>> |{}|", card.desc));
+                                        self.log_effect(format_args!(">>> |{}|", card.desc));
                                     }
                                 }
 
