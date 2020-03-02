@@ -97,22 +97,24 @@ pub enum StepFailure {
     DecisionMismatch,
 }
 
+
+impl fmt::Display for StepFailure {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &*self {
+            StepFailure::GameOverVictory => write!(f, "Game Over Victory"),
+            StepFailure::GameOverDefeat => write!(f, "Game Over Defeat"),
+            StepFailure::InternalError(msg) => write!(f, "Internal: {}", msg),
+            StepFailure::RulesViolation(msg) => write!(f, "Rules Violation - {}", msg),
+            StepFailure::DecisionRequired =>  write!(f, "Decision Required"),
+            StepFailure::DecisionMismatch =>  write!(f, "Decision Mismatch"),
+       }
+    }
+}
+
+
 impl From<StepFailure> for Box<dyn std::error::Error> {
     fn from(failure: StepFailure) -> Self {
-        match failure {
-            StepFailure::GameOverVictory => 
-                Box::<dyn std::error::Error>::from("Game Over Victory".to_string()),
-            StepFailure::GameOverDefeat =>
-                Box::<dyn std::error::Error>::from("Game Over Defeat".to_string()),
-            StepFailure::InternalError(msg) =>
-                Box::<dyn std::error::Error>::from(format!("Internal: {}", msg)),
-            StepFailure::RulesViolation(msg) =>
-                Box::<dyn std::error::Error>::from(format!("Rules Violation - {}", msg)),
-            StepFailure::DecisionRequired => 
-                Box::<dyn std::error::Error>::from("Decision Required".to_string()),
-            StepFailure::DecisionMismatch => 
-                Box::<dyn std::error::Error>::from("Decision Mismatch".to_string()),
-        }
+        Box::<dyn std::error::Error>::from(format!("{}", failure))
     }
 }
 

@@ -142,22 +142,34 @@ impl PowerDeck {
         self.draw.shuffle(&mut rng);
     }
 
-    pub fn draw(&mut self, count: usize) -> Vec<PowerCard> {
+    pub fn draw(&mut self, mut rng: &mut dyn RngCore, count: usize) -> Vec<PowerCard> {
         let mut res = Vec::new();
+        // TODO resultify
+        // TODO make not a for a loop
         for _ in 0..count {
-            res.insert(0, self.draw.pop().unwrap());
+            if let Some(card) = self.draw.pop() {
+                res.insert(0, card);
+            } else {
+                self.shuffle_discard_into_draw(rng);
+                res.insert(0, self.draw.pop().unwrap());
+            }
         }
 
         res
     }
 
-    pub fn draw_into_pending(&mut self, count: usize) {
-        let drawn = self.draw(count);
+    pub fn draw_into_pending(&mut self, mut rng: &mut dyn RngCore, count: usize) {
+        let drawn = self.draw(rng, count);
         self.pending.extend(drawn);
     }
 
     pub fn discard_pending(&mut self) {
         self.discard.extend(self.pending.drain(..));
+    }
+
+    pub fn shuffle_discard_into_draw(&mut self, mut rng: &mut dyn RngCore) {
+        self.draw.extend(self.discard.drain(..));
+        self.draw.shuffle(&mut rng);
     }
 }
 

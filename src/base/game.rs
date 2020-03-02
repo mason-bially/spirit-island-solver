@@ -51,7 +51,7 @@ impl GameDescription {
 pub struct GameState {
     pub desc: Rc<GameDescription>,
 
-    rng: Box<dyn DeterministicRng>,
+    pub rng: Box<dyn DeterministicRng>,
 
     pub enable_logging: bool,
 

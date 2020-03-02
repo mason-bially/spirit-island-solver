@@ -25,7 +25,7 @@ impl Effect for ChooseGrowthDecision {
         }?;
 
         // 1a. Verify it's size
-        if choice.len() == self.count {
+        if choice.len() != self.count {
             return Err(StepFailure::InternalError("must grow exact amount of times.".to_string()));
         }
 
@@ -79,7 +79,7 @@ impl Effect for GainMinorPowerCardDecision {
         game.log_decision(format!("gain minor power card for {} (from {}).", self.spirit_index, self.draw_count));
 
         // 1. Setup the draw/pending state
-        game.minor_powers.draw_into_pending(self.draw_count);
+        game.minor_powers.draw_into_pending(game.rng.get_rng(), self.draw_count);
 
         // 2. Pick the power
         let choice = match game.consume_choice()?
@@ -94,6 +94,7 @@ impl Effect for GainMinorPowerCardDecision {
 
         // 3. Move card
         let card = game.minor_powers.pending.remove(choice);
+        game.log_subeffect(format!("drafted |{}|.", card.desc));
         game.get_spirit_mut(self.spirit_index)?.deck.hand.push(card);
 
         game.minor_powers.discard_pending();
@@ -125,10 +126,10 @@ impl Effect for GainMajorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
         game.log_decision(format!("gain major power card for {} (from {}).", self.spirit_index, self.draw_count));
 
-        game.do_effect(NotImplementedEffect { what: "MAJOR POWER DRAFTING, no sacrifice, no major powers" })?;
+        return game.do_effect(NotImplementedEffect { what: "MAJOR POWER DRAFTING, no sacrifice, no major powers" });
 
         // 1. Setup the draw/pending state
-        game.major_powers.draw_into_pending(self.draw_count);
+        game.major_powers.draw_into_pending(game.rng.get_rng(), self.draw_count);
 
         // 2. Pick the power
         let choice = match game.consume_choice()?

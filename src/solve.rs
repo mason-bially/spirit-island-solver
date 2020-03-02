@@ -46,6 +46,11 @@ impl BasicStatistics {
         self.defeats += other.defeats;
         self.errors += other.errors;
 
+        let total = self.victories + self.defeats + self.errors;
+        if total > 1000 {
+            println!("merge of {} states", total);
+        }
+
         if other.max_score > self.max_score {
             self.first_best_game = other.first_best_game.clone();
         }
@@ -66,6 +71,7 @@ impl BasicStatistics {
                 branch.stats.defeats += 1;
             },
             _ => {
+                //println!("FAILURE: {}", fail); // HACK
                 do_score = false;
                 branch.stats.errors += 1;
             },
@@ -162,7 +168,7 @@ impl SolveEngine {
     pub fn do_branch_execute(&self, branch: &mut SolveBranch) -> Result<(), Box<dyn Error>> {
         loop {
             let mut working_state = branch.game_state.clone();
-            working_state.enable_logging = true; // HACK
+            //working_state.enable_logging = true; // HACK
             let res = working_state.step();
 
             match res {
