@@ -84,7 +84,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 name: "Boon of Vigor",
                 kind: PowerCardKind::Spirit(spirit_index),
                 elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Plant]),
-                cost: 0, speed: PowerSpeed::Fast, range: None,
+                cost: 0, speed: PowerSpeed::Fast,
                 target_filter: PowerTargetFilter::Spirit(|_| true),
 
                 effect: card_boon_of_vigor
@@ -93,8 +93,8 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 name: "Flash Floods",
                 kind: PowerCardKind::Spirit(spirit_index),
                 elements: ElementMap::from_slice(&[Element::Sun, Element::Water]),
-                cost: 1, speed: PowerSpeed::Fast, range: Some(1),
-                target_filter: PowerTargetFilter::Land(|_| true),
+                cost: 1, speed: PowerSpeed::Fast,
+                target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |_| true},
 
                 effect: card_flash_floods,
             },
@@ -102,8 +102,8 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 name: "River's Bounty",
                 kind: PowerCardKind::Spirit(spirit_index),
                 elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Animal]),
-                cost: 0, speed: PowerSpeed::Slow, range: Some(0),
-                target_filter: PowerTargetFilter::Land(|_| true),
+                cost: 0, speed: PowerSpeed::Slow,
+                target_filter: PowerTargetFilter::Land{range: 0, src: |_| true, dst: |_| true},
 
                 effect: card_rivers_bounty,
             },
@@ -111,8 +111,8 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 name: "Wash Away",
                 kind: PowerCardKind::Spirit(spirit_index),
                 elements: ElementMap::from_slice(&[Element::Water, Element::Earth]),
-                cost: 1, speed: PowerSpeed::Slow, range: Some(1),
-                target_filter: PowerTargetFilter::Land(|_| true),
+                cost: 1, speed: PowerSpeed::Slow,
+                target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |_| true},
 
                 effect: card_wash_away,
             },

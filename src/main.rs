@@ -21,7 +21,7 @@ mod solve;
 use crate::core::{CoreContent};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let matches = App::new("Spirit Island Solver")
+    let args = App::new("Spirit Island Solver")
         .version("0.1.0")
         .author("Mason Bially <mason.bially@gmail.com>")
         .about("A spirit island solver and simulator.")
@@ -35,11 +35,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             .long("seed")
             .help("Sets the seet of the random system for reproducible results..")
             .takes_value(true))
+        .arg(Arg::with_name("threads")
+            .short("j")
+            .long("threads")
+            .help("The number of concurrent threads to use.")
+            .takes_value(true))
         .get_matches();
+
 
     let mut seed: [u8; 32] = [0; 32];
     let mut hasher = Sha1::new();
-    hasher.input_str(matches.value_of("seed").unwrap_or("default"));
+    hasher.input_str(args.value_of("seed").unwrap_or("default"));
     hasher.result(&mut seed);
     let rng = Box::new(base::DeterministicChaCha::new(ChaChaRng::from_seed(seed)));
 
@@ -47,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     content.push(Box::new(CoreContent::new()));
 
     let mut spirits = Vec::new();
-    if let Some(arg_spirits) = matches.values_of("spirit") {
+    if let Some(arg_spirits) = args.values_of("spirit") {
         for spirit in arg_spirits {
             match base::search_for_spirit(&content, spirit) {
                 Some(spirit) => spirits.push(spirit),
@@ -56,6 +62,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             
         }
     }
+
+    let threads = args.value_of("threads").unwrap_or("4").parse::<usize>().unwrap();
+
+
 
     let adversary: Box<dyn base::AdversaryDescription> = Box::new(base::DefaultAdversaryDescription::new());
 
@@ -67,7 +77,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut solver = solve::SolveEngine::new(&state,
         solve::SimpleDecisionMaker::new());
 
-    solver.main(16)?;
+        
+    solver.main(threads)?;
 
     Ok(())
 }

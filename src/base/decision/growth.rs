@@ -44,7 +44,7 @@ impl Effect for ChooseGrowthDecision {
             return Err(StepFailure::InternalError("duplicate growth choices!".to_string()));
         }
         
-        //game.log_decision("choosing growths...".to_string());
+        game.log_decision(format_args!("choosing growths..."));
 
         // 2. Run the choice as outself
         for schoice in choice {

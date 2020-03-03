@@ -547,7 +547,7 @@ impl SolveEngine {
                 .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
             let stats = &branch_internal.stats;
 
-            self.resimulate_game(stats.first_best_game.clone());
+            let res = self.resimulate_game(stats.first_best_game.clone());
     
             println!("");
             println!(" ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^ ");
@@ -557,9 +557,9 @@ impl SolveEngine {
             println!("  v: {},  d: {},  e: {}", stats.victories, stats.defeats, stats.errors);
             println!("    min: {},  max: {}  ", stats.min_score, stats.max_score);
             println!("");
-        }
 
-        Ok(())
+            res
+        }
     }
 }
 

@@ -146,8 +146,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Call of The Dahan Ways",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Moon, Element::Water, Element::Animal]),
-            cost: 1, speed: PowerSpeed::Slow, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|l| l.dahan.len() != 0),
+            cost: 1, speed: PowerSpeed::Slow,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |l| l.dahan.len() != 0},
 
             effect: card_call_of_the_dahan_ways
         },
@@ -155,8 +155,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Call to Bloodshed",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Sun, Element::Fire, Element::Animal]),
-            cost: 1, speed: PowerSpeed::Slow, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|l| l.dahan.len() != 0),
+            cost: 1, speed: PowerSpeed::Slow,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |l| l.dahan.len() != 0},
 
             effect: card_call_to_bloodshed
         },
@@ -164,8 +164,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Call to Isolation",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Sun, Element::Air, Element::Animal]),
-            cost: 0, speed: PowerSpeed::Fast, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|l| l.dahan.len() != 0),
+            cost: 0, speed: PowerSpeed::Fast,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |l| l.dahan.len() != 0},
 
             effect: card_call_to_isolation
         },
@@ -173,8 +173,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Call to Migrate",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Fire, Element::Air, Element::Animal]),
-            cost: 1, speed: PowerSpeed::Slow, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|_| true),
+            cost: 1, speed: PowerSpeed::Slow,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |_| true},
 
             effect: card_call_to_migrate
         },
@@ -182,8 +182,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Call to Tend",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Water, Element::Plant, Element::Animal]),
-            cost: 1, speed: PowerSpeed::Slow, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|l| l.dahan.len() != 0),
+            cost: 1, speed: PowerSpeed::Slow,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |l| l.dahan.len() != 0},
 
             effect: card_call_to_tend
         },
@@ -191,8 +191,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Dark and Tangled Woods",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Moon, Element::Earth, Element::Plant]),
-            cost: 1, speed: PowerSpeed::Fast, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|_| true),
+            cost: 1, speed: PowerSpeed::Fast,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |_| true},
 
             effect: card_dark_and_tangled_woods
         },
@@ -200,8 +200,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Delusions of Danger",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Sun, Element::Moon, Element::Air]),
-            cost: 1, speed: PowerSpeed::Fast, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|_| true),
+            cost: 1, speed: PowerSpeed::Fast,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |_| true},
 
             effect: card_delusions_of_danger
         },
@@ -209,8 +209,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Devouring Ants",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Sun, Element::Earth, Element::Animal]),
-            cost: 1, speed: PowerSpeed::Slow, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|_| true),
+            cost: 1, speed: PowerSpeed::Slow,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |_| true},
 
             effect: card_devouring_ants,
         },
@@ -218,8 +218,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Dirft Down into Slumber",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Air, Element::Earth, Element::Plant]),
-            cost: 0, speed: PowerSpeed::Fast, range: Some(2),
-            target_filter: PowerTargetFilter::Land(|_| true),
+            cost: 0, speed: PowerSpeed::Fast,
+            target_filter: PowerTargetFilter::Land{range: 2, src: |_| true, dst: |_| true},
 
             effect: card_drift_down_into_slumber,
         },
@@ -227,8 +227,8 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Drought",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Sun, Element::Fire, Element::Earth]),
-            cost: 1, speed: PowerSpeed::Slow, range: Some(1),
-            target_filter: PowerTargetFilter::Land(|_| true),
+            cost: 1, speed: PowerSpeed::Slow,
+            target_filter: PowerTargetFilter::Land{range: 1, src: |_| true, dst: |_| true},
 
             effect: card_drought,
         },
@@ -236,7 +236,7 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Elemental Boon",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[]),
-            cost: 1, speed: PowerSpeed::Fast, range: None,
+            cost: 1, speed: PowerSpeed::Fast,
             target_filter: PowerTargetFilter::Spirit(|_| true),
 
             effect: card_elemental_boon,
@@ -245,7 +245,7 @@ pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {
             name: "Encompassing Ward",
             kind: PowerCardKind::Minor,
             elements: ElementMap::from_slice(&[Element::Sun, Element::Water, Element::Earth]),
-            cost: 1, speed: PowerSpeed::Fast, range: None,
+            cost: 1, speed: PowerSpeed::Fast,
             target_filter: PowerTargetFilter::Spirit(|_| true),
 
             effect: card_encompassing_ward,

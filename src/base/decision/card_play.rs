@@ -3,6 +3,7 @@ use std::{
     any::Any,
     iter::*,
     collections::{HashSet},
+    sync::{Arc}
 };
 
 use super::*;
@@ -39,7 +40,7 @@ impl Effect for CardPlaysDecision {
             return Err(StepFailure::InternalError("duplicate play choices!".to_string()));
         }
 
-        //game.log_decision("choosing card plays...".to_string());
+        game.log_decision(format_args!("choosing card plays..."));
 
         // 2. Move the cards to pending
         choice.sort();
@@ -75,10 +76,66 @@ pub struct DoCardPlayDecision {
     pub pending_index: usize,
 }
 
+impl DoCardPlayDecision {
+    pub fn get_valid_targets(&self, game: &GameState, card_desc: &PowerCardDescription) -> Result<Vec<PowerTarget>, StepFailure> {
+
+        match card_desc.target_filter {
+            PowerTargetFilter::Land{range, src, dst} => {
+                // TODO src filter and ranges
+                Ok(game.table.lands.iter().enumerate()
+                    .filter(|(_, state)| dst(state))
+                    .map(|(index, _)| PowerTarget::Land(index as u8))
+                    .collect())
+            },
+            PowerTargetFilter::Spirit(target) => {
+                Ok(game.spirits.iter().enumerate()
+                    .filter(|(_, state)| target(state))
+                    .map(|(index, _)| PowerTarget::Spirit(index as u8))
+                    .collect())
+            }
+        }
+    }
+}
+
 impl Effect for DoCardPlayDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        // 1. Get the decision target
-        //game.log_decision("NOT IMPLEMENTED CHOOSING TARGET".to_string());
+        let card_desc = Arc::clone(&game.get_spirit(self.spirit_index)?.deck.pending[self.pending_index].desc);
+
+        // 1. Figure out the kind of card we are dealing with to get the decision
+        let target = match card_desc.target_filter {
+            PowerTargetFilter::Land{..} => {
+                PowerTarget::Land(
+                    match game.consume_choice()?
+                    {
+                        DecisionChoice::TargetLand(res) => Ok(res),
+                        _ => Err(StepFailure::DecisionMismatch),
+                    }?)
+            },
+            PowerTargetFilter::Spirit(_) => {
+                PowerTarget::Spirit(
+                    match game.consume_choice()?
+                    {
+                        DecisionChoice::TargetSpirit(res) => Ok(res),
+                        _ => Err(StepFailure::DecisionMismatch),
+                    }?)
+            }
+        };
+
+        // 1a. Find it in the valid possible decisions
+        if !self.get_valid_targets(game, &card_desc)?.contains(&target) {
+            return Err(StepFailure::RulesViolation("not given a valid target".to_string()));
+        }
+
+        // 2. Invoke it! Finally!
+        game.power_usages.push(PowerUsage {
+            target,
+            using_spirit_index: self.spirit_index,
+            src_land_index: None,
+        });
+
+        game.do_effect_box(card_desc.box_clone())?;
+
+        game.power_usages.pop();
 
         Ok(())
     }
@@ -90,8 +147,14 @@ impl Effect for DoCardPlayDecision {
 }
 
 impl Decision for DoCardPlayDecision {
-    fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
-        vec![]
+    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+        let card_desc = Arc::clone(&game.get_spirit(self.spirit_index).ok().unwrap().deck.pending[self.pending_index].desc);
+
+        self.get_valid_targets(game, &card_desc).ok().unwrap().into_iter()
+            .map(|power_target| match power_target {
+                PowerTarget::Spirit(index) => DecisionChoice::TargetSpirit(index),
+                PowerTarget::Land(index) => DecisionChoice::TargetLand(index),
+            }).collect()
     }
 }
 
@@ -140,7 +203,7 @@ impl Effect for DoCardPlaysDecision {
             return Err(StepFailure::InternalError("duplicate play choices!".to_string()));
         }
 
-        //game.log_decision("playing cards...".to_string());
+        game.log_decision(format_args!("playing cards..."));
 
         // 3. run the cards
         // TODO: hack, only one spirit

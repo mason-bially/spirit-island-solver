@@ -25,7 +25,7 @@ impl Effect for ChooseEffectDecision {
             return Err(StepFailure::InternalError("choice out of range".to_string()));
         }
         
-        //game.log_decision("choosing effect...".to_string());
+        game.log_decision(format_args!("choosing effect..."));
 
         // Run the choice as outself
         (self.choices[choice])(game)

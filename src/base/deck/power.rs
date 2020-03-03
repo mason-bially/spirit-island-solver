@@ -40,9 +40,8 @@ impl fmt::Display for PowerCardKind {
 
 #[derive(Copy, Clone)]
 pub enum PowerTargetFilter {
-    None,
     Spirit(fn(&SpiritState) -> bool),
-    Land(fn(&LandState) -> bool),
+    Land{range: u8, src: fn(&LandState) -> bool, dst: fn(&LandState) -> bool},
 }
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
@@ -83,7 +82,6 @@ pub struct PowerCardDescription {
 
     pub cost: u8,
     pub speed: PowerSpeed,
-    pub range: Option<u8>,
     pub target_filter: PowerTargetFilter,
 
     pub effect: SubEffect,

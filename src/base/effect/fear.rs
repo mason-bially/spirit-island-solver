@@ -27,7 +27,7 @@ impl Effect for GenerateFearEffect {
             remaining_fear -= fear_to_move;
 
             if game.fear_pool == 0 {
-                //game.log_subeffect("drawing a fear card!".to_string());
+                game.log_subeffect(format_args!("drawing a fear card!"));
 
                 game.fear.draw_into_pending();
                 game.fear_pool = game.fear_generated;
