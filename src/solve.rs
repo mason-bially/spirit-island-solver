@@ -192,7 +192,7 @@ struct SolveEngineShared {
 
 impl SolveEngineShared {
     
-    pub fn do_branch_execute(&self, branch: &Arc<SolveBranch>, branch_internal: &mut SolveBranchInternal) -> Result<(), Box<dyn Error>> {
+    pub fn do_branch_execute(&self, branch: &SolveBranch, branch_internal: &mut SolveBranchInternal) -> Result<(), Box<dyn Error>> {
         loop {
             let mut working_state = branch_internal.game_state.clone();
             //working_state.enable_logging = true; // HACK
@@ -242,19 +242,40 @@ impl SolveEngineShared {
             match working_state.step() {
                 Ok(_) => {
                     working_state.advance()?;
-                    let prev = self.branches.fetch_add(1, Ordering::Relaxed);
-                    if prev % 100000 == 0 {
-                        let mut last_update = self.last_update.lock()
-                            .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
 
-                        let seconds = last_update.elapsed().as_secs_f64();
-                        *last_update = Instant::now();
-                        let steps = self.steps.swap(0, Ordering::Relaxed);
-                        let steps_per_second = (steps as f64) / seconds;
-                        println!("{} branches ({:.0} steps/s). at {}.", prev, steps_per_second, working_state.step);
+                    let new_branch = SolveBranch::new(Arc::downgrade(branch), working_state, choices);
 
+                    // agressively prune these branches
+                    let keep_branch
+                        = {
+                            let mut new_branch_internal = new_branch.internal.lock()
+                                .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
+                            self.do_branch_execute(&new_branch, &mut new_branch_internal)?;
+        
+                            if new_branch.state.load() == SolveBranchState::Completed {
+                                branch_internal.stats.merge(&new_branch_internal.stats);
+
+                                false
+                            } else {
+                                let prev = self.branches.fetch_add(1, Ordering::Relaxed);
+                                if prev % 100000 == 0 {
+                                    let mut last_update = self.last_update.lock()
+                                        .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
+        
+                                    let seconds = last_update.elapsed().as_secs_f64();
+                                    *last_update = Instant::now();
+                                    let steps = self.steps.swap(0, Ordering::Relaxed);
+                                    let steps_per_second = (steps as f64) / seconds;
+                                    println!("{} branches ({:.0} steps/s). at {}.", prev, steps_per_second, new_branch_internal.game_state.step);
+                                }
+
+                                true
+                            }
+                        };
+
+                    if keep_branch {
+                        branch_internal.branches.push(Arc::new(new_branch));
                     }
-                    branch_internal.branches.push(Arc::new(SolveBranch::new(Arc::downgrade(branch), working_state, choices)));
                 }
                 Err(StepFailure::DecisionRequired) => {
                     self.do_branch_expand(branch, branch_internal, choices)?;
