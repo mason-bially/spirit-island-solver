@@ -94,7 +94,7 @@ impl Effect for GainMinorPowerCardDecision {
 
         // 3. Move card
         let card = game.minor_powers.pending.remove(choice);
-        game.log_effect(format_args!("drafted |{}|.", card.desc));
+        game.log_subeffect(format_args!("drafted |{}|.", card.desc));
         game.get_spirit_mut(self.spirit_index)?.deck.hand.push(card);
 
         game.minor_powers.discard_pending();
@@ -212,3 +212,50 @@ impl Decision for GainPowerCardDecision {
         ]
     }
 }
+
+
+#[derive(Clone)]
+pub struct AddPresenceDecision {
+    pub spirit_index: u8,
+}
+
+impl Effect for AddPresenceDecision {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        game.log_decision(format_args!("adding presence for {}.", self.spirit_index));
+
+        // 1. Which presence to take
+        let presence = match game.consume_choice()?
+        {
+            DecisionChoice::TargetPresence(res) => Ok(res),
+            _ => Err(StepFailure::DecisionMismatch),
+        }?;
+
+        
+        
+        Ok(())
+    }
+
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
+    
+    fn as_decision(&self) -> Option<Box<dyn Decision>> { Some(Box::new(self.clone())) }
+}
+
+impl Decision for AddPresenceDecision {
+    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+        let spirit_desc = game.get_spirit_desc(self.spirit_index).ok().unwrap();
+        let spirit = game.get_spirit(self.spirit_index).ok().unwrap();
+
+        spirit.presence.iter()
+            .filter(|p| 
+                if let PresenceState::OnTrack(pot) = p {
+                    spirit_desc.may_place_presence(&spirit.presence, *pot as usize).ok().unwrap()
+                } else { false })
+            .map(|p| 
+                if let PresenceState::OnTrack(pot) = p {
+                    DecisionChoice::TargetPresence(*pot)
+                } else { panic!() })
+            .collect()
+    }
+}
+

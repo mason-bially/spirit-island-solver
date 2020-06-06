@@ -582,6 +582,11 @@ impl SolveStrategy for SimpleDecisionMaker {
         let undecided_decision = state.effect_stack.last().unwrap();
         let decision = undecided_decision.as_decision().unwrap();
 
-        decision.valid_choices(state)
+        let descisions = decision.valid_choices(state);
+        if descisions.len() == 0 {
+            Vec::new()
+        } else {
+            vec![descisions[0].clone()]
+        }
     }
 }

@@ -1,7 +1,7 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
 use crate::base::{
-    GameState, StepFailure, SpiritDescription,
+    GameState, StepFailure, SpiritDescription, PresenceState,
     PowerCardDescription,
     PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
     LandKind, PieceKind, InvaderKind,
@@ -127,9 +127,39 @@ impl SpiritDescription for SpiritDescriptionRiver {
             // boards are sorted lowest to highest by default
             .last().unwrap()
             .index_on_table;
-        game.do_effect(AddPresenceEffect{land_index, spirit: si as u8, count: 1})?;
+
+        game.do_effect(AddPresenceEffect{land_index, spirit_index: si as u8, presence_index: 0})?;
+
+        let spirit = game.get_spirit_mut(si as u8)?;
+        
+        for i in 1..13 {
+            spirit.presence[i] = PresenceState::OnTrack(i as u8);
+        }
 
         Ok(())
+    }
+
+    fn may_place_presence(&self, state: &[PresenceState; 13], presence_index: usize) -> Result<bool, StepFailure> {
+        match state[presence_index] {
+            PresenceState::OnTrack(track_loc) => {
+                if track_loc <= 6 {
+                    // Top Track
+                    if track_loc == 1 {
+                        Ok(true)
+                    } else {
+                        Ok(state[(track_loc - 1) as usize] != PresenceState::OnTrack(track_loc - 1))
+                    }
+                } else {
+                    // Bottom Track
+                    if track_loc == 7 {
+                        Ok(true)
+                    } else {
+                        Ok(state[(track_loc - 1) as usize] != PresenceState::OnTrack(track_loc - 1))
+                    }
+                }
+            },
+            _ => Ok(true)
+        }
     }
 
     fn do_growth(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure> {
@@ -147,14 +177,14 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 },
                 |game, spirit_index| {
                     // Growth B
-                    // TODO: add presence
-                    // TODO: add presence
+                    game.do_effect(AddPresenceDecision{ spirit_index })?;
+                    game.do_effect(AddPresenceDecision{ spirit_index })?;
 
                     Ok(())
                 },
                 |game, spirit_index| {
                     // Growth B
-                    // TODO: add presence
+                    game.do_effect(AddPresenceDecision{ spirit_index })?;
                     game.do_effect(GainPowerCardDecision{ spirit_index })?;
                     
                     Ok(())
@@ -162,7 +192,10 @@ impl SpiritDescription for SpiritDescriptionRiver {
             ]
         })
     }
-    fn do_income(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>{
+
+    fn do_income(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure> {
+        let spirit = game.get_spirit(spirit_index as u8);
+
         Ok(())
     }
 }

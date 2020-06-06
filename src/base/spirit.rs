@@ -130,16 +130,30 @@ pub trait SpiritDescription : Send + Sync {
 
     fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 
+    fn may_place_presence(&self, state: &[PresenceState; 13], presence_index: usize) -> Result<bool, StepFailure>;
+
     fn do_growth(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
     fn do_income(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum PresenceState {
     OnBoard(u8),
     OnTrack(u8),
     Destroyed,
     RemovedFromGame,
+}
+
+impl fmt::Display for PresenceState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            // removed emojis due to not being fixed width
+            PresenceState::OnBoard(spot) => write!(f, "(board: {})", spot),
+            PresenceState::OnTrack(spot) => write!(f, "(track: {})", spot),
+            PresenceState::Destroyed => write!(f, "(destroyed"),
+            PresenceState::RemovedFromGame => write!(f, "(removed)"),
+       }
+    }
 }
 
 

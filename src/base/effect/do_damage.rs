@@ -58,7 +58,8 @@ impl Effect for DoInvaderAttackEffect {
         // * ...
 
         // 1. Defense
-        invader_damage -= land.defense;
+        invader_damage = if land.defense >= invader_damage { 0 } else { invader_damage - land.defense };
+        game.log_subeffect(format_args!("defense {} lowers damage to {}.", land.defense, invader_damage));
 
         // 2.Damage is done in two steps, one to the land and one to the dahan
         // 2a. Damage to dahan

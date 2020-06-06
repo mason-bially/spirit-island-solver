@@ -128,16 +128,16 @@ impl Effect for GatherDecision {
 
             // 1a. Sanity check
             if total_target_count == 0 {
-                game.log_effect(format_args!("gather {} {} from {} (but no targets!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+                game.log_effect(format_args!("gather {} {} to {} (but no targets!).", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
                 return Ok(());
             }
         }
 
         if self.may {
-            game.log_decision(format_args!("may gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+            game.log_decision(format_args!("may gather {} {} to {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
         }
         else {
-            game.log_decision(format_args!("gather {} {} from {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
+            game.log_decision(format_args!("gather {} {} to {}.", self.count, piece_kind_vec_to_string(&self.kinds), self.land_index));
         }
 
 

@@ -42,23 +42,26 @@ impl Effect for AddBlightEffect {
 }
 
 
+// This "adds" presence from somewhere else
 #[derive(Clone)]
 pub struct AddPresenceEffect {
     pub land_index: u8,
-    pub spirit: u8,
-    pub count: u8,
+    pub spirit_index: u8,
+    pub presence_index: u8,
 }
 
 impl Effect for AddPresenceEffect {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_effect(format_args!("adding presence to land {} for {}.", self.land_index, self.spirit));
+        // 1. "Pickup" the presence
+        let presence = game.get_spirit(self.spirit_index)?.presence[self.presence_index as usize];
 
-        // Pre: presence has already been "picked up" for this effect.
-        //   this is just about actually adding it to the board.
+        game.log_effect(format_args!("adding presence from {} to land {} for {}.", presence, self.land_index, self.spirit_index));
 
-        // 1. Add presence to the land
+        game.get_spirit_mut(self.spirit_index)?.presence[self.presence_index as usize] = PresenceState::OnBoard(self.land_index);
+
+        // 2. Add presence to the land
         let land = game.get_land_mut(self.land_index)?;
-        land.presence[self.spirit] += self.count;
+        land.presence[self.spirit_index] += 1;
         
         Ok(())
     }
