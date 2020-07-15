@@ -44,10 +44,14 @@ impl Effect for ChooseGrowthDecision {
             return Err(StepFailure::InternalError("duplicate growth choices!".to_string()));
         }
         
-        game.log_decision(format_args!("choosing growths..."));
+        game.log_decision(format_args!("choosing {} growth(s) for {}...", self.count, self.spirit_index));
 
         // 2. Run the choice as outself
+        let mut index = 0;
         for schoice in choice {
+            index += 1;
+            game.log_subeffect(format_args!("growth choice {} ({})", index, (65u8 + schoice as u8) as char));
+
             (self.choices[schoice])(game, self.spirit_index)?;
         }
 
@@ -76,8 +80,6 @@ pub struct GainMinorPowerCardDecision {
 
 impl Effect for GainMinorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_decision(format_args!("gain minor power card for {} (from {}).", self.spirit_index, self.draw_count));
-
         // 1. Setup the draw/pending state
         game.minor_powers.draw_into_pending(game.rng.get_rng(), self.draw_count);
 
@@ -91,6 +93,8 @@ impl Effect for GainMinorPowerCardDecision {
         if !(choice < self.draw_count) {
             return Err(StepFailure::InternalError("choice out of range".to_string()));
         }
+
+        game.log_decision(format_args!("gain minor power card, drawing {} (picked {}).", self.draw_count, choice));
 
         // 3. Move card
         let card = game.minor_powers.pending.remove(choice);
@@ -124,8 +128,6 @@ pub struct GainMajorPowerCardDecision {
 
 impl Effect for GainMajorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_decision(format_args!("gain major power card for {} (from {}).", self.spirit_index, self.draw_count));
-
         return game.do_effect(NotImplementedEffect { what: "MAJOR POWER DRAFTING, no sacrifice, no major powers" });
 
         // 1. Setup the draw/pending state
@@ -141,6 +143,8 @@ impl Effect for GainMajorPowerCardDecision {
         if !(choice < self.draw_count) {
             return Err(StepFailure::InternalError("choice out of range".to_string()));
         }
+
+        game.log_decision(format_args!("gain major power card, drawing {} (picked {}).", self.draw_count, choice));
         
         // 3. Move card
         let card = game.major_powers.pending.remove(choice);
@@ -174,8 +178,6 @@ pub struct GainPowerCardDecision {
 
 impl Effect for GainPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_decision(format_args!("gain power card for {}.", self.spirit_index));
-
         // 1. Choose minor or major
         let choice = match game.consume_choice()?
         {
@@ -185,9 +187,11 @@ impl Effect for GainPowerCardDecision {
 
         match choice {
             0 => {
+                game.log_decision(format_args!("gain power card (minor)."));
                 game.do_effect(GainMinorPowerCardDecision{spirit_index: self.spirit_index, draw_count: 4})?;
             }
             1 => {
+                game.log_decision(format_args!("gain power card (major)."));
                 game.do_effect(GainMajorPowerCardDecision{spirit_index: self.spirit_index, draw_count: 4})?;
             }
             _ => {
@@ -217,19 +221,19 @@ impl Decision for GainPowerCardDecision {
 #[derive(Clone)]
 pub struct AddPresenceDecision {
     pub spirit_index: u8,
+    pub distance: u8,
 }
 
 impl Effect for AddPresenceDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
-        game.log_decision(format_args!("adding presence for {}.", self.spirit_index));
-
         // 1. Which presence to take
-        let presence = match game.consume_choice()?
+        let (spirit, target_land, source_presence) = match game.consume_choice()?
         {
-            DecisionChoice::TargetPresence(res) => Ok(res),
+            DecisionChoice::PlacePresence{spirit, target_land, source_presence} => Ok((spirit, target_land, source_presence)),
             _ => Err(StepFailure::DecisionMismatch),
         }?;
 
+        game.log_decision(format_args!("adding presence, distance {}, (target land {}, source presence {})", self.distance, target_land, source_presence));
         
         
         Ok(())
@@ -253,7 +257,7 @@ impl Decision for AddPresenceDecision {
                 } else { false })
             .map(|p| 
                 if let PresenceState::OnTrack(pot) = p {
-                    DecisionChoice::TargetPresence(*pot)
+                    DecisionChoice::PlacePresence{spirit: self.spirit_index, target_land: 1, source_presence: *pot}
                 } else { panic!() })
             .collect()
     }

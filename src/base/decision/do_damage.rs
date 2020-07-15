@@ -97,7 +97,7 @@ impl Effect for DoDamageToDahanDecision {
         }
 
         if damage_remaining != 0 {
-            game.log_effect(format_args!("{} damage to dahan in {} spilled over.", damage_remaining, self.land_index));
+            game.log_subeffect(format_args!("{} damage to dahan in {} spilled over.", damage_remaining, self.land_index));
         }
 
         Ok(())
@@ -143,8 +143,6 @@ impl Effect for DoDamageToInvadersDecision {
             return Ok(());
         }
 
-        game.log_decision(format_args!("{} damage to invaders in {}.", self.damage, self.land_index));
-
         // 2. Get the damage decision
         let damage_layout: Vec<u16>
             = match game.consume_choice()?
@@ -152,6 +150,8 @@ impl Effect for DoDamageToInvadersDecision {
                 DecisionChoice::Damage(res) => Ok(res),
                 _ => Err(StepFailure::DecisionMismatch),
             }?;
+
+        game.log_decision(format_args!("{} damage to invaders in {}.", self.damage, self.land_index));
 
         // 3. Actually perform the damage
         let mut destroyed_invaders: Vec<usize> = Vec::new();

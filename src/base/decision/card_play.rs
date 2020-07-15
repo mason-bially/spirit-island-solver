@@ -107,7 +107,7 @@ impl Effect for DoCardPlayDecision {
                 PowerTarget::Land(
                     match game.consume_choice()?
                     {
-                        DecisionChoice::TargetLand(res) => Ok(res),
+                        DecisionChoice::TargetLand{target_land, ..} => Ok(target_land),
                         _ => Err(StepFailure::DecisionMismatch),
                     }?)
             },
@@ -115,7 +115,7 @@ impl Effect for DoCardPlayDecision {
                 PowerTarget::Spirit(
                     match game.consume_choice()?
                     {
-                        DecisionChoice::TargetSpirit(res) => Ok(res),
+                        DecisionChoice::TargetSpirit{target_spirit} => Ok(target_spirit),
                         _ => Err(StepFailure::DecisionMismatch),
                     }?)
             }
@@ -125,6 +125,8 @@ impl Effect for DoCardPlayDecision {
         if !self.get_valid_targets(game, &card_desc)?.contains(&target) {
             return Err(StepFailure::RulesViolation("not given a valid target".to_string()));
         }
+
+        game.log_decision(format_args!("playing card (targeting {})...", target));
 
         // 2. Invoke it! Finally!
         game.power_usages.push(PowerUsage {
@@ -152,8 +154,8 @@ impl Decision for DoCardPlayDecision {
 
         self.get_valid_targets(game, &card_desc).ok().unwrap().into_iter()
             .map(|power_target| match power_target {
-                PowerTarget::Spirit(index) => DecisionChoice::TargetSpirit(index),
-                PowerTarget::Land(index) => DecisionChoice::TargetLand(index),
+                PowerTarget::Spirit(index) => DecisionChoice::TargetSpirit{target_spirit: index},
+                PowerTarget::Land(index) => DecisionChoice::TargetLand{target_land: index, source_land: 0},
             }).collect()
     }
 }

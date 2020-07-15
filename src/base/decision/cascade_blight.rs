@@ -16,7 +16,7 @@ impl Effect for CascadeBlightDecision {
         let dst_land_index
             = match game.consume_choice()?
             {
-                DecisionChoice::TargetLand(land) => Ok(land),
+                DecisionChoice::TargetLand{target_land, ..} => Ok(target_land),
                 _ => Err(StepFailure::DecisionMismatch),
             }?;
 
@@ -48,7 +48,7 @@ impl Decision for CascadeBlightDecision {
             .adjacent.iter()
                 // TODO resultify
                 .filter(|l| game.get_land(**l).ok().unwrap().is_in_play)
-                .map(|l| DecisionChoice::TargetLand(*l))
+                .map(|l| DecisionChoice::TargetLand{target_land: *l, source_land: self.src_land_index})
                 .collect()
     }
 }

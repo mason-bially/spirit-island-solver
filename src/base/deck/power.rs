@@ -50,6 +50,15 @@ pub enum PowerTarget {
     Land(u8),
 }
 
+impl fmt::Display for PowerTarget {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PowerTarget::Spirit(i) => write!(f, "Spirit {}", i),
+            PowerTarget::Land(i) => write!(f, "Land {}", i),
+       }
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct PowerUsage {
     pub target: PowerTarget,

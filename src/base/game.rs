@@ -59,6 +59,7 @@ pub struct GameState {
     pub step: GameStep,
     pub next_step: GameStep,
     pub game_over_reason: Option<String>,
+    pub choice_count: u32,
 
     pub choices: VecDeque<DecisionChoice>,
     pub effect_stack: Vec<Box<dyn Effect>>,
@@ -92,6 +93,7 @@ impl GameState {
             step: GameStep::Init,
             next_step: GameStep::Init,
             game_over_reason: None,
+            choice_count: 0,
 
             choices: VecDeque::new(),
             effect_stack: Vec::new(),
@@ -128,7 +130,7 @@ impl GameState {
     }
     pub fn log_decision(&self, args: fmt::Arguments) {
         if self.enable_logging {
-            println!("   |{}* {}", "  ".repeat(self.effect_stack.len()), args);
+            println!("   |{}{}) {}", "  ".repeat(self.effect_stack.len()), self.choice_count, args);
         }
     }
     pub fn log_subeffect(&self, args: fmt::Arguments) {
@@ -189,7 +191,10 @@ impl GameState {
 
     pub fn consume_choice(&mut self) -> Result<DecisionChoice, StepFailure> {
         match self.choices.pop_front() {
-            Some(v) => Ok(v),
+            Some(v) => {
+                self.choice_count += 1;
+                Ok(v)
+            },
             None => Err(StepFailure::DecisionRequired)
         }
     }

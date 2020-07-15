@@ -74,8 +74,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let description = Arc::new(base::GameDescription::new(content, adversary, spirits, map));
     let state = base::GameState::new(description, rng);
 
+    let solver_rng = Box::new(base::DeterministicChaCha::new(ChaChaRng::from_seed(seed)));
     let mut solver = solve::SolveEngine::new(&state,
-        solve::SimpleDecisionMaker::new());
+        solve::StochasticDecisionMaker::new(solver_rng));
 
         
     solver.main(threads)?;

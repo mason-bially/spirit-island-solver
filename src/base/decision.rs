@@ -10,9 +10,13 @@ pub enum DecisionChoice {
     Sequence(Vec<usize>),
     Choice(usize),
     
-    TargetLand(u8),
-    TargetPresence(u8),
-    TargetSpirit(u8),
+    // targetings
+    TargetLand{target_land: u8, source_land: u8},
+    //TargetPresence{target_land: u8, target_spirit: u8, source_land: u8},
+    TargetSpirit{target_spirit: u8},
+
+    // presence placement
+    PlacePresence{spirit: u8, target_land: u8, source_presence: u8},
 
     Damage(Vec<u16>),
     // for push/gather

@@ -1,3 +1,4 @@
+use crate::base::rng::DeterministicRng;
 use std::{
     error::Error,
     cmp::*,
@@ -9,6 +10,8 @@ use std::{
     collections::{VecDeque},
     time::Instant,
 };
+
+use rand::prelude::*;
 
 use crossbeam::{unbounded, atomic::AtomicCell};
 
@@ -583,6 +586,44 @@ impl SolveStrategy for SimpleDecisionMaker {
         let decision = undecided_decision.as_decision().unwrap();
 
         let descisions = decision.valid_choices(state);
+        if descisions.len() == 0 {
+            Vec::new()
+        } else {
+            vec![descisions[0].clone()]
+        }
+    }
+}
+
+
+
+pub struct StochasticDecisionMaker {
+    pub rng: Box<dyn DeterministicRng>,
+}
+
+impl StochasticDecisionMaker {
+    pub fn new(rng: Box<dyn DeterministicRng>) -> Box<StochasticDecisionMaker> {
+        Box::new(StochasticDecisionMaker {
+            rng
+        })
+    }
+}
+
+impl SolveStrategy for StochasticDecisionMaker {
+    fn decide(&self, state: &GameState) -> Vec<DecisionChoice> {
+        let undecided_decision = state.effect_stack.last().unwrap();
+        let decision = undecided_decision.as_decision().unwrap();
+
+        let previous_decisions = state.choice_count;
+
+        let mut temp_rng = self.rng.clone();
+        for _ in 0..previous_decisions
+        {
+            temp_rng.get_rng().next_u64();
+        }
+
+        let mut descisions = decision.valid_choices(state).clone();
+        descisions.shuffle(&mut temp_rng.get_rng());
+
         if descisions.len() == 0 {
             Vec::new()
         } else {

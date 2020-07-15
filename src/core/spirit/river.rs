@@ -177,14 +177,14 @@ impl SpiritDescription for SpiritDescriptionRiver {
                 },
                 |game, spirit_index| {
                     // Growth B
-                    game.do_effect(AddPresenceDecision{ spirit_index })?;
-                    game.do_effect(AddPresenceDecision{ spirit_index })?;
+                    game.do_effect(AddPresenceDecision{ spirit_index, distance: 1 })?;
+                    game.do_effect(AddPresenceDecision{ spirit_index, distance: 1 })?;
 
                     Ok(())
                 },
                 |game, spirit_index| {
                     // Growth B
-                    game.do_effect(AddPresenceDecision{ spirit_index })?;
+                    game.do_effect(AddPresenceDecision{ spirit_index, distance: 2 })?;
                     game.do_effect(GainPowerCardDecision{ spirit_index })?;
                     
                     Ok(())
