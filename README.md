@@ -5,6 +5,14 @@
 
 All game assets (often rendered in code form) are owned by Greater Than Games. Other code, as and where marked, is licensed under the MPL, copyright Mason Bially. This code base is intended for personal and educational use only. I do not intended to use this code commercially - nor do I intend for others to use it commercially - due to the copyrighted elements and the [position of the publisher](https://querki.net/u/darker/spirit-island-faq/#!.9v5ka4u).
 
+## Usage
+
+An example command to run is:
+
+```
+cargo run --release -- -s river --seed foobar --solver rng --solver-take 2 -j10
+```
+
 ## AI Approaches
 
 This library is designed to support three different ways of approaching writing an AI for or solver for spirit island.

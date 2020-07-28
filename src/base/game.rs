@@ -72,6 +72,7 @@ pub struct GameState {
     pub fear: FearDeck,
     pub fear_pool: u8,
     pub fear_generated: u8,
+    pub fear_generated_total: u8,
 
     pub blight_remaining: u8,
 
@@ -106,6 +107,7 @@ impl GameState {
             fear: FearDeck::new(),
             fear_pool: 0,
             fear_generated: 0,
+            fear_generated_total: 0,
 
             blight_remaining: 5,
 

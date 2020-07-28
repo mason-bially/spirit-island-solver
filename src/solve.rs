@@ -622,10 +622,9 @@ impl SolveStrategy for StochasticDecisionMaker {
             temp_rng.get_rng().next_u64();
         }
 
-        let mut descisions = decision.valid_choices(state).clone();
-        descisions.shuffle(&mut temp_rng.get_rng());
+        let mut decisions = decision.valid_choices(state).clone();
+        decisions.shuffle(&mut temp_rng.get_rng());
 
-        let mut decisions = decision.valid_choices(state);
         if self.take_first != 0 {
             decisions.truncate(self.take_first as usize);
         }

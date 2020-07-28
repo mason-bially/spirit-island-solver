@@ -23,6 +23,7 @@ impl Effect for GenerateFearEffect {
             let fear_to_move = min(self.fear, game.fear_pool);
 
             game.fear_generated += fear_to_move;
+            game.fear_generated_total += fear_to_move;
             game.fear_pool -= fear_to_move;
             remaining_fear -= fear_to_move;
 
