@@ -569,13 +569,13 @@ impl SolveEngine {
 
 
 pub struct SimpleDecisionMaker {
-
+    take_first: u8
 }
 
 impl SimpleDecisionMaker {
-    pub fn new() -> Box<SimpleDecisionMaker> {
+    pub fn new(take_first: u8) -> Box<SimpleDecisionMaker> {
         Box::new(SimpleDecisionMaker {
-
+            take_first,
         })
     }
 }
@@ -585,12 +585,11 @@ impl SolveStrategy for SimpleDecisionMaker {
         let undecided_decision = state.effect_stack.last().unwrap();
         let decision = undecided_decision.as_decision().unwrap();
 
-        let descisions = decision.valid_choices(state);
-        if descisions.len() == 0 {
-            Vec::new()
-        } else {
-            vec![descisions[0].clone()]
+        let mut decisions = decision.valid_choices(state);
+        if self.take_first != 0 {
+            decisions.truncate(self.take_first as usize);
         }
+        decisions
     }
 }
 
@@ -598,12 +597,14 @@ impl SolveStrategy for SimpleDecisionMaker {
 
 pub struct StochasticDecisionMaker {
     pub rng: Box<dyn DeterministicRng>,
+    take_first: u8
 }
 
 impl StochasticDecisionMaker {
-    pub fn new(rng: Box<dyn DeterministicRng>) -> Box<StochasticDecisionMaker> {
+    pub fn new(rng: Box<dyn DeterministicRng>, take_first: u8) -> Box<StochasticDecisionMaker> {
         Box::new(StochasticDecisionMaker {
-            rng
+            rng,
+            take_first,
         })
     }
 }
@@ -624,10 +625,10 @@ impl SolveStrategy for StochasticDecisionMaker {
         let mut descisions = decision.valid_choices(state).clone();
         descisions.shuffle(&mut temp_rng.get_rng());
 
-        if descisions.len() == 0 {
-            Vec::new()
-        } else {
-            vec![descisions[0].clone()]
+        let mut decisions = decision.valid_choices(state);
+        if self.take_first != 0 {
+            decisions.truncate(self.take_first as usize);
         }
+        decisions
     }
 }

@@ -40,6 +40,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             .long("threads")
             .help("The number of concurrent threads to use.")
             .takes_value(true))
+        .arg(Arg::with_name("solver")
+            .long("solver")
+            .help("The type of solver to use.")
+            .possible_value("rng")
+            .possible_value("simple")
+            .takes_value(true))
+        .arg(Arg::with_name("solver-take")
+            .long("solver-take")
+            .help("For solvers that only order decisions, how many to take. Use 0 to take all.")
+            .takes_value(true))
         .get_matches();
 
 
@@ -74,9 +84,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     let description = Arc::new(base::GameDescription::new(content, adversary, spirits, map));
     let state = base::GameState::new(description, rng);
 
-    let solver_rng = Box::new(base::DeterministicChaCha::new(ChaChaRng::from_seed(seed)));
-    let mut solver = solve::SolveEngine::new(&state,
-        solve::StochasticDecisionMaker::new(solver_rng));
+    let solver_name = args.value_of("solver").unwrap_or("simple");
+    let solver_strategy =
+        if solver_name == "simple" {
+            let solver_take = args.value_of("solver-take").unwrap_or("2").parse::<u8>().unwrap();
+            Ok(solve::SimpleDecisionMaker::new(solver_take) as Box<dyn solve::SolveStrategy>)
+        } else if solver_name == "rng" {
+            let solver_take = args.value_of("solver-take").unwrap_or("2").parse::<u8>().unwrap();
+            let solver_rng = Box::new(base::DeterministicChaCha::new(ChaChaRng::from_seed(seed)));
+            Ok(solve::StochasticDecisionMaker::new(solver_rng, solver_take) as Box<dyn solve::SolveStrategy>)
+        } else {
+            Err("Unknown solver.")
+        }.unwrap();
+
+    let mut solver = solve::SolveEngine::new(&state, solver_strategy);
 
         
     solver.main(threads)?;
