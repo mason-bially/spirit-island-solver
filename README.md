@@ -1,4 +1,6 @@
 
+This is my personal attempt at writing a solver library for the board game spirit island.
+
 ## Licensing
 
 (Eric: I agree to the terms for creating Spirit Island game elements [set forth in the FAQ](https://querki.net/u/darker/spirit-island-faq/#!.9v5ka4u))
@@ -6,6 +8,8 @@
 All game assets (often rendered in code form) are owned by Greater Than Games. Other code, as and where marked, is licensed under the MPL, copyright Mason Bially. This code base is intended for personal and educational use only. I do not intend to use this code commercially - nor do I intend for others to use it commercially - due to the copyrighted elements and the [position of the publisher](https://querki.net/u/darker/spirit-island-faq/#!.9v5ka4u).
 
 ## Usage
+
+Install rust/cargo.
 
 An example command to run is:
 
