@@ -183,7 +183,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
                     Ok(())
                 },
                 |game, spirit_index| {
-                    // Growth B
+                    // Growth C
                     game.do_effect(AddPresenceDecision{ spirit_index, distance: 2 })?;
                     game.do_effect(GainPowerCardDecision{ spirit_index })?;
                     

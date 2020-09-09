@@ -11,7 +11,7 @@ mod board;
 mod fear;
 mod power;
 
-pub use spirit::{SpiritDescriptionRiver};
+pub use spirit::{SpiritDescriptionRiver, SpiritDescriptionLightning};
 use board::{make_board_a};
 use fear::{make_fear_cards};
 use power::{make_minor_power_cards, make_major_power_cards};
@@ -24,6 +24,7 @@ impl ContentPack for CoreContent {
     fn get_spirits(&self) -> Vec<Box<dyn SpiritDescription>> {
         vec![
             Box::new(SpiritDescriptionRiver::new()),
+            Box::new(SpiritDescriptionLightning::new()),
         ]
     }
 

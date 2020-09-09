@@ -457,6 +457,7 @@ impl GameState {
                                     .get(*inv_card as usize).unwrap();
 
                                 // TODO: Technically the order here is a decision...
+                                // But which lands are targeted is *not*
                                 let lands = desc.table.lands.iter().filter(|l| card.can_target(l));
 
                                 self.log_effect(format_args!("Invader Action Card: {}", card));
