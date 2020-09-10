@@ -118,6 +118,17 @@ impl SpiritDescription for SpiritDescriptionRiver {
             },
         ]
     }
+    fn get_power_progression(&self) -> Vec<&'static str> {
+        vec![
+            "Uncanny Melting",
+            "Nature's Resilence",
+            "Pull Beneath the Hungry Earth",
+            "Acelerated Rot",
+            "Song of Sanctity",
+            "Tsunami",
+            "Encompassing Ward"
+        ]
+    }
 
     fn do_setup(&self, game: &mut GameState, si: usize) -> Result<(), StepFailure> {
         // River puts 1 in the highest wetland

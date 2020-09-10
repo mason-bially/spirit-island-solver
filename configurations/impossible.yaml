@@ -1,0 +1,27 @@
+seed: off
+content:
+  - core
+game:
+  spirits: [lightning]
+  boards: [all]
+  adversary:
+    name: all
+    difficulty: all
+  variants:
+    events: off
+solver:
+  strategy:
+    - type: setup-power-progression
+      on-underflow: nothing
+    - type: setup-branch
+      take: all
+      fear: yes
+      invader: yes
+      blight: yes
+      minor: no
+      major: no
+      events: no
+    - type: play-branch
+      take: all
+  early-terminate: any-victory
+  search: depth

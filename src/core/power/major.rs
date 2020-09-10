@@ -12,6 +12,11 @@ fn card_accelerated_rot (game: &mut GameState) -> Result<(), StepFailure> {
     game.do_effect(NotImplementedEffect { what: "Accelerated Rot" })
 }
 
+// lss progression 3
+fn card_powerstorm (game: &mut GameState) -> Result<(), StepFailure> {
+    game.do_effect(NotImplementedEffect { what: "Powerstorm" })
+}
+
 pub fn make_major_power_cards() -> Vec<PowerCardDescription> {
     vec![
         PowerCardDescription {

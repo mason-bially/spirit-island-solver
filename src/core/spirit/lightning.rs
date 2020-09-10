@@ -73,6 +73,17 @@ impl SpiritDescription for SpiritDescriptionLightning {
             },
         ]
     }
+    fn get_power_progression(&self) -> Vec<&'static str> {
+        vec![
+            "Delusions of Danger",
+            "Call to Bloodshed",
+            "Powerstorm",
+            "Purfying Flame",
+            "Pillar of Living Flame",
+            "Entrancing Apparitions",
+            "Call to Isolation",
+        ]
+    }
 
     fn do_setup(&self, game: &mut GameState, si: usize) -> Result<(), StepFailure> {
         // Lightning puts 2 in the highest sands

@@ -13,6 +13,7 @@ fn card_call_of_the_dahan_ways (game: &mut GameState) -> Result<(), StepFailure>
     game.do_effect(NotImplementedEffect { what: "Call of The Dahan Ways" })
 }
 
+// lss progression 2
 fn card_call_to_bloodshed (game: &mut GameState) -> Result<(), StepFailure> {
     game.do_effect(ChooseEffectDecision{
         choices: vec![
@@ -32,6 +33,7 @@ fn card_call_to_bloodshed (game: &mut GameState) -> Result<(), StepFailure> {
     })
 }
 
+// lss progression 7
 fn card_call_to_isolation (game: &mut GameState) -> Result<(), StepFailure> {
     game.do_effect(NotImplementedEffect { what: "Call to Isolation" })
 }
@@ -80,6 +82,7 @@ fn card_dark_and_tangled_woods (game: &mut GameState) -> Result<(), StepFailure>
     Ok(())
 }
 
+// lss progression 1
 fn card_delusions_of_danger (game: &mut GameState) -> Result<(), StepFailure> {
     game.do_effect(ChooseEffectDecision{
         choices: vec![
@@ -138,6 +141,16 @@ fn card_elemental_boon (game: &mut GameState) -> Result<(), StepFailure> {
 
 fn card_encompassing_ward (game: &mut GameState) -> Result<(), StepFailure> {
     game.do_effect(NotImplementedEffect { what: "Encompassing ward" })
+}
+
+// lss progression 6
+fn card_entrancing_apparitions (game: &mut GameState) -> Result<(), StepFailure> {
+    game.do_effect(NotImplementedEffect { what: "Entrancing Apparitions" })
+}
+
+// lss progression 4
+fn card_purifying_flame (game: &mut GameState) -> Result<(), StepFailure> {
+    game.do_effect(NotImplementedEffect { what: "Purifying Flame" })
 }
 
 pub fn make_minor_power_cards() -> Vec<PowerCardDescription> {

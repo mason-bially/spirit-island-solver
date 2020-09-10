@@ -387,6 +387,8 @@ pub struct SolveEngine {
     init_state: GameState,
 
     shared: Arc<SolveEngineShared>,
+
+    print_first_best_game: bool
 }
 
 enum SolveWork {
@@ -410,6 +412,8 @@ impl SolveEngine {
     
                 last_update: Mutex::new(Instant::now()),
             }),
+
+            print_first_best_game: false
         }
     }
 
@@ -550,18 +554,22 @@ impl SolveEngine {
                 .or(Err(Box::<dyn std::error::Error>::from("Could not obtain branch lock.")))?;
             let stats = &branch_internal.stats;
 
-            let res = self.resimulate_game(stats.first_best_game.clone());
+            if self.print_first_best_game
+            {
+                self.resimulate_game(stats.first_best_game.clone())?;
+
+                println!("");
+                println!(" ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^ ");
+                println!("  first best game replay above    ({} branches, {} choices)",
+                    stats.first_best_game.len(), stats.first_best_game.iter().map(|s| s.len()).sum::<usize>());
+                println!("");
+            }
     
-            println!("");
-            println!(" ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^  ^^ ");
-            println!("  first best game replay above    ({} branches, {} choices)",
-                stats.first_best_game.len(), stats.first_best_game.iter().map(|s| s.len()).sum::<usize>());
-            println!("");
             println!("  v: {},  d: {},  e: {}", stats.victories, stats.defeats, stats.errors);
             println!("    min: {},  max: {}  ", stats.min_score, stats.max_score);
             println!("");
 
-            res
+            Ok(())
         }
     }
 }

@@ -127,6 +127,7 @@ pub trait SpiritDescription : Send + Sync {
     fn all_names(&self) -> &'static [&'static str];
 
     fn get_power_cards(&self, spirit_index: u8) -> Vec<PowerCardDescription>;
+    fn get_power_progression(&self) -> Vec<&'static str>;
 
     fn do_setup(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure>;
 
