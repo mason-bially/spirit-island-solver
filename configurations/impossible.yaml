@@ -23,5 +23,3 @@ solver:
       events: no
     - type: play-branch
       take: all
-  early-terminate: any-victory
-  search: depth
