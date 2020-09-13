@@ -8,7 +8,7 @@ use crate::base::{
     GameState, StepFailure, SpiritDescription, PresenceState,
     PowerCardDescription,
     PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
-    LandKind, PieceKind, InvaderKind,
+    LandKind, PieceKind, InvaderKind, InvaderMap,
     effect::*, decision::*,
 };
 
@@ -30,6 +30,12 @@ fn card_raging_storm (game: &mut GameState) -> Result<(), StepFailure> {
 }
 
 fn card_shatter_homesteads (game: &mut GameState) -> Result<(), StepFailure> {
+    let usage = *game.get_power_usage()?;
+    let land_index = usage.target_land()?;
+
+    game.do_effect(GenerateFearEffect{ land_index: Some(land_index), fear: 1 })?;
+    game.do_effect(DestroyInvadersDecision{ land_index, count: 1, kinds: InvaderMap::new(false).map(InvaderKind::Town, true) })?;
+
     Ok(())
 }
 

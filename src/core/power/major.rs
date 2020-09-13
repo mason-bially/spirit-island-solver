@@ -17,6 +17,11 @@ fn card_powerstorm (game: &mut GameState) -> Result<(), StepFailure> {
     game.do_effect(NotImplementedEffect { what: "Powerstorm" })
 }
 
+// lss progression 5
+fn card_pillar_of_living_flame (game: &mut GameState) -> Result<(), StepFailure> {
+    game.do_effect(NotImplementedEffect { what: "Pillar of Living Flame" })
+}
+
 pub fn make_major_power_cards() -> Vec<PowerCardDescription> {
     vec![
         PowerCardDescription {

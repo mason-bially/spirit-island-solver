@@ -69,23 +69,29 @@ impl fmt::Display for Element {
 #[derive(Copy, Clone)]
 pub struct ElementMap<T>( pub [T; 8] );
 
-impl<T> ElementMap<T> {
-    pub fn new<F>(v: F) -> ElementMap<T>
-        where F: Fn() -> T
+impl<T> ElementMap<T>
+where T : Copy {
+    pub fn new(v: T) -> ElementMap<T>
     {
-        ElementMap( [v(),v(),v(),v(),v(),v(),v(),v()] )
+        ElementMap( [v,v,v,v,v,v,v,v] )
     }
 
     pub fn map(mut self, kind: Element, value: T) -> Self {
         self[kind] = value;
         self
     }
+
+    pub fn set_all(&mut self, v: T) {
+        for e in self.0.iter_mut() {
+            *e = v;
+        }
+    }
 }
 
 impl ElementMap<bool> {
     pub fn from_slice(slice: &[Element]) -> ElementMap<bool>
     {
-        let mut res = ElementMap::new(|| false);
+        let mut res = ElementMap::new(false);
         for e in slice {
             res[*e] = true;
         };
@@ -168,6 +174,9 @@ pub struct SpiritState {
     pub energy: u8,
     pub plays: u8,
     pub elements: ElementMap<u8>,
+
+    // specific effects:
+    pub plays_slows_as_fasts: u8,
 }
 
 impl SpiritState {
@@ -180,11 +189,22 @@ impl SpiritState {
 
             energy: 0,
             plays: 0,
-            elements: ElementMap::new(|| 0),
+            elements: ElementMap::new(0),
+
+            plays_slows_as_fasts: 0,
         }
     }
 
     pub fn init() {
         
+    }
+
+    pub fn time_passes(&mut self) {
+        self.deck.discard_pending();
+
+        self.plays = 0;
+        self.elements.set_all(0);
+
+        self.plays_slows_as_fasts = 0;
     }
 }

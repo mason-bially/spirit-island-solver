@@ -54,7 +54,7 @@ impl Effect for PushDecision {
         // 2. Get the decision
         let sequence = match game.consume_choice()?
         {
-            DecisionChoice::PieceSequence(res) => Ok(res),
+            DecisionChoice::AreaPieceSequence(res) => Ok(res),
             _ => Err(StepFailure::DecisionMismatch),
         }?;
 
@@ -101,7 +101,7 @@ impl Effect for PushDecision {
 impl Decision for PushDecision {
     fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         vec![
-            DecisionChoice::PieceSequence(vec![])
+            DecisionChoice::AreaPieceSequence(vec![])
         ]
     }
 }
@@ -144,7 +144,7 @@ impl Effect for GatherDecision {
         // 2. Get the decision
         let sequence = match game.consume_choice()?
         {
-            DecisionChoice::PieceSequence(res) => Ok(res),
+            DecisionChoice::AreaPieceSequence(res) => Ok(res),
             _ => Err(StepFailure::DecisionMismatch),
         }?;
 
@@ -193,7 +193,7 @@ impl Effect for GatherDecision {
 impl Decision for GatherDecision {
     fn valid_choices(&self, _game: &GameState) -> Vec<DecisionChoice> {
         vec![
-            DecisionChoice::PieceSequence(vec![])
+            DecisionChoice::AreaPieceSequence(vec![])
         ]
     }
 }

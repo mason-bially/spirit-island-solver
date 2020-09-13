@@ -101,11 +101,11 @@ impl fmt::Display for InvaderKind {
 #[derive(Copy, Clone)]
 pub struct InvaderMap<T>( [T; 3] );
 
-impl<T> InvaderMap<T> {
-    pub fn new<F>(v: F) -> InvaderMap<T>
-        where F: Fn() -> T
+impl<T> InvaderMap<T> 
+where T : Copy {
+    pub fn new(v: T) -> InvaderMap<T>
     {
-        InvaderMap( [v(),v(),v()] )
+        InvaderMap( [v,v,v] )
     }
 
     pub fn map(mut self, kind: InvaderKind, value: T) -> Self {

@@ -214,3 +214,84 @@ impl Decision for DoDamageToInvadersDecision {
         ]
     }
 }
+
+
+#[derive(Clone)]
+pub struct DestroyInvadersDecision {
+    pub land_index: u8,
+    pub count: u8,
+    pub kinds: InvaderMap<bool>,
+}
+
+impl Effect for DestroyInvadersDecision {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        let mut invaders = game.get_land(self.land_index)?.invaders.clone();
+
+        // 1. Filter & Sanity check
+        invaders = invaders.into_iter()
+            .filter(|inv| self.kinds[inv.kind])
+            .collect();
+
+        if invaders.len() == 0 {
+            game.log_effect(format_args!("destroying {} invaders in {} (but no matching invaders!).", self.count, self.land_index));
+            return Ok(());
+        }
+
+        // 2. Get the decision
+        let sequence = match game.consume_choice()?
+        {
+            DecisionChoice::PieceSequence(res) => Ok(res),
+            _ => Err(StepFailure::DecisionMismatch),
+        }?;
+
+        game.log_decision(format_args!("destroying {} invaders in {}.", self.count, self.land_index));
+
+        // 3. Verify decision?
+
+        let invaders = &game.get_land(self.land_index)?.invaders;
+        let mut destroyed_invaders: Vec<usize> = Vec::new();
+
+        for (pk, i) in sequence {
+            let ik = match pk {
+                PieceKind::Invader(ik) => Ok(ik),
+                _ => Err(StepFailure::InternalError("can only destroy invaders.".to_string()))
+            }?;
+
+            if !self.kinds[ik] {
+                return Err(StepFailure::InternalError("invader kind is not allowed by effect.".to_string()));
+            }
+
+            if invaders[i].kind != ik {
+                return Err(StepFailure::InternalError("mismatched index and piece kind.".to_string()));
+            }
+
+            destroyed_invaders.push(i);
+        }
+
+        // 4. Clean up pending destroys
+        destroyed_invaders.reverse(); // so that higher indexes are first
+        for invader_index in destroyed_invaders {
+            game.do_effect(RemoveInvaderEffect{land_index: self.land_index, invader_index, destroyed: true})?;
+        }
+
+        Ok(())
+    }
+
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
+
+    fn as_decision(&self) -> Option<Box<dyn Decision>> { Some(Box::new(self.clone())) }
+}
+
+impl Decision for DestroyInvadersDecision {
+    fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
+        // TODO: do combinations
+        game.get_land(self.land_index).ok().unwrap()
+            .invaders.iter()
+            .enumerate()
+            .filter(|(_, inv)| self.kinds[inv.kind])
+            .map(|(i, inv)| DecisionChoice::PieceSequence(vec![(PieceKind::Invader(inv.kind), i)]))
+            .collect()
+    }
+}
+

@@ -20,7 +20,7 @@ impl Effect for GenerateFearEffect {
         // 1. Manipulate pool and draw cards!
         let mut remaining_fear = self.fear;
         while remaining_fear > 0 {
-            let fear_to_move = min(self.fear, game.fear_pool);
+            let fear_to_move = min(remaining_fear, game.fear_pool);
 
             game.fear_generated += fear_to_move;
             game.fear_generated_total += fear_to_move;
@@ -43,7 +43,13 @@ impl Effect for GenerateFearEffect {
 
         // 2. Add fear to land?
         // TODO
-        
+        match self.land_index {
+            Some(land_index) => {
+                game.get_land_mut(land_index)?.fear_generated_here_this_round += self.fear 
+            },
+            _ => { }
+        }
+
         Ok(())
     }
 

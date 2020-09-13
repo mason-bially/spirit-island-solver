@@ -427,11 +427,11 @@ impl GameState {
                     TurnStep::Invader(inv_step) => {
                         match &inv_step {
                             InvaderStep::BlightedIsland => {
-
+                                // TODO: blight
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_event()?))
                             }
-                            InvaderStep::Event(event_card, event_part) => {
-
+                            InvaderStep::Event(_event_card, _event_part) => {
+                                // TODO: events
                                 GameStep::Turn(turn, TurnStep::Invader(self.step_to_next_event()?))
                             }
                             InvaderStep::FearEffect(fear_card) => {
@@ -499,7 +499,7 @@ impl GameState {
                         }
 
                         for spirit in self.spirits.iter_mut() {
-                            spirit.deck.discard_pending();
+                            spirit.time_passes();
                         }
 
                         GameStep::Turn(turn + 1, TurnStep::Spirit(SpiritStep::Growth))

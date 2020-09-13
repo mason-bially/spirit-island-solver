@@ -20,7 +20,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 0,
 
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0),
+            starting_invaders: InvaderMap::new(0),
             starting_dahan: 0,
 
             index_on_table: 0,
@@ -34,7 +34,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 1,
             
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0),
+            starting_invaders: InvaderMap::new(0),
             starting_dahan: 0,
 
             index_on_table: 1,
@@ -48,7 +48,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 2,
             
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0).map(InvaderKind::City, 1),
+            starting_invaders: InvaderMap::new(0).map(InvaderKind::City, 1),
             starting_dahan: 1,
 
             index_on_table: 2,
@@ -62,7 +62,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 3,
 
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0),
+            starting_invaders: InvaderMap::new(0),
             starting_dahan: 2,
 
             index_on_table: 3,
@@ -76,7 +76,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 4,
 
             starting_tokens: TokenMap::new(|| 0).map(TokenKind::Blight, 1),
-            starting_invaders: InvaderMap::new(|| 0),
+            starting_invaders: InvaderMap::new(0),
             starting_dahan: 0,
 
             index_on_table: 4,
@@ -90,7 +90,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 5,
 
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0),
+            starting_invaders: InvaderMap::new(0),
             starting_dahan: 0,
 
             index_on_table: 5,
@@ -104,7 +104,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 6,
 
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0),
+            starting_invaders: InvaderMap::new(0),
             starting_dahan: 1,
 
             index_on_table: 6,
@@ -118,7 +118,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 7,
 
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0),
+            starting_invaders: InvaderMap::new(0),
             starting_dahan: 2,
 
             index_on_table: 7,
@@ -132,7 +132,7 @@ pub fn make_board_a() -> BoardDescription {
             index_on_board: 8,
 
             starting_tokens: TokenMap::new(|| 0),
-            starting_invaders: InvaderMap::new(|| 0).map(InvaderKind::Town, 1),
+            starting_invaders: InvaderMap::new(0).map(InvaderKind::Town, 1),
             starting_dahan: 0,
 
             index_on_table: 8,

@@ -53,7 +53,9 @@ pub struct LandState {
     pub invaders: Vec<Invader>,
     pub dahan: Vec<Dahan>,
 
+    // more specific effects
     pub defense: u16,
+    pub fear_generated_here_this_round: u8,
 }
 
 #[derive(Clone)]
@@ -115,6 +117,7 @@ impl LandState {
         }
 
         self.defense = 0;
+        self.fear_generated_here_this_round = 0;
     }
 
     pub fn get_count(&self, pk: &PieceKind) -> usize {
@@ -147,6 +150,7 @@ impl TableState {
                     dahan: repeat(Dahan::new()).take(land.starting_dahan as usize).collect(),
 
                     defense: 0,
+                    fear_generated_here_this_round: 0,
                 });
             }
         }
