@@ -37,7 +37,7 @@ mod remove_piece;
 pub use self::add_piece::{AddBlightEffect, AddPresenceEffect, AddInvaderEffect, AddDahanEffect};
 pub use self::do_damage::{DoDamageToLandEffect, DoInvaderAttackEffect, DoDahanAttackEffect};
 pub use self::fear::{GenerateFearEffect};
-pub use self::growth::{GenerateEnergyEffect};
+pub use self::growth::{GenerateEnergyEffect, ReclaimAllEffect};
 pub use self::invader_action::{ExploreEffect, BuildEffect, RavageEffect};
 pub use self::meta::{NotImplementedEffect, ForAllLandsDoEffect};
 pub use self::persist::{PersistDefenseEffect};

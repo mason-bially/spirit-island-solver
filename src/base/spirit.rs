@@ -139,8 +139,8 @@ pub trait SpiritDescription : Send + Sync {
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum PresenceState {
-    OnBoard(u8),
-    OnTrack(u8),
+    OnBoard(u8), // board index
+    OnTrack(u8), // track index
     Destroyed,
     RemovedFromGame,
 }

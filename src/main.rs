@@ -50,6 +50,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             .long("solver-take")
             .help("For solvers that only order decisions, how many to take. Use 0 to take all.")
             .takes_value(true))
+        .arg(Arg::with_name("print-best")
+            .long("print-best")
+            .help("Attempted to print the best game sequence."))
         .get_matches();
 
 
@@ -98,8 +101,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         }.unwrap();
 
     let mut solver = solve::SolveEngine::new(&state, solver_strategy);
-
-        
+    solver.print_first_best_game = args.is_present("print-best");
+    
     solver.main(threads)?;
 
     Ok(())

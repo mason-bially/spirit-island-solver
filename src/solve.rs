@@ -388,7 +388,7 @@ pub struct SolveEngine {
 
     shared: Arc<SolveEngineShared>,
 
-    print_first_best_game: bool
+    pub print_first_best_game: bool
 }
 
 enum SolveWork {

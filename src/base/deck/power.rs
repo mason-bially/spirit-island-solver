@@ -211,5 +211,10 @@ impl SpiritPowerDeck {
     pub fn discard_pending(&mut self) {
         self.discard.extend(self.pending.drain(..));
     }
+
+    pub fn reclaim_discard_into_hand(&mut self) {
+        self.hand.extend(self.discard.drain(..));
+        // TODO sort?
+    }
 }
 

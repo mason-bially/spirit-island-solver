@@ -1,5 +1,9 @@
 // This file contains copyrighted assets owned by Greater Than Games.
 
+use std::{
+    cmp::{min}
+};
+
 use crate::base::{
     GameState, StepFailure, SpiritDescription, PresenceState,
     PowerCardDescription,
@@ -73,6 +77,9 @@ fn card_wash_away (game: &mut GameState) -> Result<(), StepFailure> {
         Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
     }
 }
+
+const _TOP_TRACK_START : u8 = 1;
+const _BOT_TRACK_START : u8 = 7;
 
 impl SpiritDescription for SpiritDescriptionRiver {
     fn name(&self) -> &'static str { "River Surges in Sunlight" }
@@ -153,16 +160,16 @@ impl SpiritDescription for SpiritDescriptionRiver {
     fn may_place_presence(&self, state: &[PresenceState; 13], presence_index: usize) -> Result<bool, StepFailure> {
         match state[presence_index] {
             PresenceState::OnTrack(track_loc) => {
-                if track_loc <= 6 {
+                if track_loc < _BOT_TRACK_START {
                     // Top Track
-                    if track_loc == 1 {
+                    if track_loc == _TOP_TRACK_START {
                         Ok(true)
                     } else {
                         Ok(state[(track_loc - 1) as usize] != PresenceState::OnTrack(track_loc - 1))
                     }
                 } else {
                     // Bottom Track
-                    if track_loc == 7 {
+                    if track_loc == _BOT_TRACK_START {
                         Ok(true)
                     } else {
                         Ok(state[(track_loc - 1) as usize] != PresenceState::OnTrack(track_loc - 1))
@@ -180,7 +187,7 @@ impl SpiritDescription for SpiritDescriptionRiver {
             choices: vec![
                 |game, spirit_index| {
                     // Growth A
-                    // TODO: reclaim
+                    game.do_effect(ReclaimAllEffect{ spirit_index })?;
                     game.do_effect(GainPowerCardDecision{ spirit_index })?;
                     game.do_effect(GenerateEnergyEffect{ spirit_index, energy: 1 })?;
 
@@ -205,7 +212,61 @@ impl SpiritDescription for SpiritDescriptionRiver {
     }
 
     fn do_income(&self, game: &mut GameState, spirit_index: usize) -> Result<(), StepFailure> {
-        let spirit = game.get_spirit(spirit_index as u8);
+        let spirit = game.get_spirit_mut(spirit_index as u8)?;
+        
+        let mut top_track_min = 15;
+        let mut bot_track_min = 15;
+
+        for presence in spirit.presence.iter() {
+            match *presence {
+                PresenceState::OnTrack(track_loc) => {
+                    if track_loc >= _BOT_TRACK_START {
+                        bot_track_min = min(bot_track_min, track_loc);
+                    } else {
+                        top_track_min = min(top_track_min, track_loc);
+                    }
+                },
+                _ => {}
+            }
+        }
+
+        // The above loop fings the minimum track spot with presence still on it. To find the
+        // minimum open spot we should have to subtract 1, to get normative numbering of the tracks
+        // (where 0 is the free space and 1 is the first open space) we need to add 1. These cancel
+        // out. Make sure to change this code if these assumptions change.
+        // TODO: use a struct for all this shit. 
+
+        top_track_min -= _TOP_TRACK_START;
+        bot_track_min -= _BOT_TRACK_START;
+
+        let card_plays;
+        let energy;
+        let mut reclaim_one = false;
+
+        match top_track_min {
+            1 | 2 => energy = 2,
+            3 => energy = 3,
+            4 | 5 => energy = 4,
+            6 => energy = 5,
+            _ => energy = 1,
+        }
+
+        match bot_track_min {
+            1 | 2 => card_plays = 2,
+            3 => card_plays = 3,
+            4 => { card_plays = 3; reclaim_one = true },
+            5 => { card_plays = 4; reclaim_one = true },
+            6 => { card_plays = 5; reclaim_one = true },
+            _ => card_plays = 1,
+        }
+
+        spirit.plays = card_plays; // TODO: effect maybe?
+        
+        game.do_effect(GenerateEnergyEffect{ spirit_index: spirit_index as u8, energy })?;
+        if reclaim_one {
+            // TODO: reclaim one decision
+            game.do_effect(NotImplementedEffect { what: "Reclaim One" })?;
+        }
 
         Ok(())
     }
