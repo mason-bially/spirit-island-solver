@@ -18,10 +18,23 @@ pub struct SpiritDescriptionLightning {
 }
 
 fn card_harbringers_of_the_lightning (game: &mut GameState) -> Result<(), StepFailure> {
+    let usage = game.get_power_usage()?;
+    let land_index = usage.target_land()?;
+
+    game.do_effect(PushDecision{land_index, count: 2, may: true,
+        kinds: vec![PieceKind::Dahan]})?;
+    // TODO: 1 fear if you pushed dahan to lands with towns/cities...
+    // TODO: figure out how the fuck to check for that...
+    
     Ok(())
 }
 
 fn card_lightnings_boon (game: &mut GameState) -> Result<(), StepFailure> {
+    let usage = game.get_power_usage()?;
+    let dst_spirit_index = usage.target_spirit()?;
+
+    game.do_effect(MayPlaySlowsAsFastsEffect{spirit_index: dst_spirit_index, amount: 2})?;
+
     Ok(())
 }
 
@@ -30,7 +43,7 @@ fn card_raging_storm (game: &mut GameState) -> Result<(), StepFailure> {
     let land_index = usage.target_land()?;
 
     game.do_effect(DoDamageToEachInvaderEffect{ land_index: land_index, damage: 1, kinds: InvaderMap::new(true) })?;
-    
+
     Ok(())
 }
 

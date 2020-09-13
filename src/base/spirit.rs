@@ -176,7 +176,7 @@ pub struct SpiritState {
     pub elements: ElementMap<u8>,
 
     // specific effects:
-    pub plays_slows_as_fasts: u8,
+    pub may_play_slows_as_fasts: u8,
 }
 
 impl SpiritState {
@@ -191,7 +191,7 @@ impl SpiritState {
             plays: 0,
             elements: ElementMap::new(0),
 
-            plays_slows_as_fasts: 0,
+            may_play_slows_as_fasts: 0,
         }
     }
 
@@ -205,6 +205,6 @@ impl SpiritState {
         self.plays = 0;
         self.elements.set_all(0);
 
-        self.plays_slows_as_fasts = 0;
+        self.may_play_slows_as_fasts = 0;
     }
 }

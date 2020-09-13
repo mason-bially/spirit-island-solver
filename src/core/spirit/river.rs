@@ -7,7 +7,7 @@ use std::{
 use crate::base::{
     GameState, StepFailure, SpiritDescription, PresenceState,
     PowerCardDescription,
-    PowerCardKind, PowerSpeed, PowerTargetFilter, PowerTarget, Element, ElementMap,
+    PowerCardKind, PowerSpeed, PowerTargetFilter, Element, ElementMap,
     LandKind, PieceKind, InvaderKind,
     effect::*, decision::*,
 };
@@ -19,36 +19,35 @@ pub struct SpiritDescriptionRiver {
 
 fn card_boon_of_vigor (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = game.get_power_usage()?;
-    if let PowerTarget::Spirit(dst_spirit_index) = usage.target {
-        let energy 
-            = if dst_spirit_index == usage.using_spirit_index {
-                1
-            } else {
-                let spirit = game.get_spirit(dst_spirit_index)?;
-                spirit.deck.pending.len() as u8
-            };
+    let dst_spirit_index = usage.target_spirit()?;
 
-        game.do_effect(GenerateEnergyEffect{spirit_index: dst_spirit_index, energy})
+    let energy;
+
+    if dst_spirit_index == usage.using_spirit_index {
+        energy = 1;
     } else {
-        Err(StepFailure::RulesViolation("Power must target a spirit.".to_string()))
+        let spirit = game.get_spirit(dst_spirit_index)?;
+        energy = spirit.deck.pending.len() as u8
     }
+
+    game.do_effect(GenerateEnergyEffect{spirit_index: dst_spirit_index, energy})?;
+
+    Ok(())
 }
 
 fn card_flash_floods (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = game.get_power_usage()?;
-    if let PowerTarget::Land(land_index) = usage.target {
-        let land = game.get_land_desc(land_index)?;
-        
-        let mut damage = 1;
-        
-        if land.is_coastal {
-            damage += 1;
-        }
+    let land_index = usage.target_land()?;
 
-        game.do_effect(DoDamageToInvadersDecision{land_index, damage})
-    } else {
-        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
+    let land = game.get_land_desc(land_index)?;
+        
+    let mut damage = 1;
+    
+    if land.is_coastal {
+        damage += 1;
     }
+
+    game.do_effect(DoDamageToInvadersDecision{land_index, damage})
 }
 
 fn card_rivers_bounty (game: &mut GameState) -> Result<(), StepFailure> {
@@ -70,12 +69,12 @@ fn card_rivers_bounty (game: &mut GameState) -> Result<(), StepFailure> {
 
 fn card_wash_away (game: &mut GameState) -> Result<(), StepFailure> {
     let usage = game.get_power_usage()?;
-    if let PowerTarget::Land(land_index) = usage.target {
-        game.do_effect(PushDecision{land_index, count: 3, may: true,
-            kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]})
-    } else {
-        Err(StepFailure::RulesViolation("Power must target a land.".to_string()))
-    }
+    let land_index = usage.target_land()?;
+
+    game.do_effect(PushDecision{land_index, count: 3, may: true,
+        kinds: vec![PieceKind::Invader(InvaderKind::Explorer), PieceKind::Invader(InvaderKind::Town)]})?;
+    
+    Ok(())
 }
 
 const _TOP_TRACK_START : u8 = 1;

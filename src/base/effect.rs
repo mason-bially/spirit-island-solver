@@ -33,6 +33,7 @@ mod invader_action;
 mod meta;
 mod persist;
 mod remove_piece;
+mod spirit;
 
 pub use self::add_piece::{AddBlightEffect, AddPresenceEffect, AddInvaderEffect, AddDahanEffect};
 pub use self::do_damage::{DoDamageToLandEffect, DoInvaderAttackEffect, DoDahanAttackEffect, DoDamageToEachInvaderEffect};
@@ -42,4 +43,5 @@ pub use self::invader_action::{ExploreEffect, BuildEffect, RavageEffect};
 pub use self::meta::{NotImplementedEffect, ForAllLandsDoEffect};
 pub use self::persist::{PersistDefenseEffect};
 pub use self::remove_piece::{RemoveBlightEffect, RemoveDahanEffect, RemoveInvaderEffect};
+pub use self::spirit::{MayPlaySlowsAsFastsEffect};
 
