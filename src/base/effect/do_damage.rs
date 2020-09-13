@@ -1,6 +1,7 @@
 use std::{
     any::Any,
     iter::*,
+    cmp::{min}
 };
 
 use super::*;
@@ -94,6 +95,61 @@ impl Effect for DoDahanAttackEffect {
 
         // 1. Do the damage
         game.do_effect(DoDamageToInvadersDecision{land_index: self.land_index, damage: dahan_damage})?;
+
+        Ok(())
+    }
+
+    fn box_clone(&self) -> Box<dyn Effect> { Box::new(self.clone()) }
+    fn as_any(&self) -> Box<dyn Any> { Box::new(self.clone()) }
+}
+
+
+#[derive(Clone)]
+pub struct DoDamageToEachInvaderEffect {
+    pub land_index: u8,
+    pub damage: u16,
+    pub kinds: InvaderMap<bool>,
+}
+
+impl Effect for DoDamageToEachInvaderEffect {
+    fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        let invaders = game.get_land(self.land_index)?.invaders.clone();
+
+        game.log_effect(format_args!("{} damage to all invaders in {}.", self.damage, self.land_index));
+
+        // 2. Actually perform the damage
+        let mut total_damage: u16 = 0;
+        let mut destroyed_invaders: Vec<usize> = Vec::new();
+        {
+            let invaders_mut = &mut game.get_land_mut(self.land_index)?.invaders;
+            
+            for invader_index in 0..invaders.len() {
+                if !self.kinds[invaders[invader_index].kind] {
+                    continue;
+                }
+
+                let invader_to_damage = &mut invaders_mut[invader_index];
+                let health_cur = invader_to_damage.health_cur as u16;
+
+                if self.damage >= health_cur {
+                    total_damage += health_cur;
+                    invader_to_damage.health_cur = 0;
+                    destroyed_invaders.push(invader_index);
+                } else {
+                    total_damage += self.damage;
+                    invader_to_damage.health_cur -= self.damage as u8;
+                }
+            }
+        }
+
+        // 3. Clean up pending destroys
+        destroyed_invaders.sort();
+        destroyed_invaders.reverse(); // so that higher indexes are first
+        for invader_index in destroyed_invaders {
+            game.do_effect(RemoveInvaderEffect{land_index: self.land_index, invader_index, destroyed: true})?;
+        }
+
+        game.log_subeffect(format_args!("{} total damage in {}.", total_damage, self.land_index));
 
         Ok(())
     }

@@ -80,6 +80,8 @@ pub struct GainMinorPowerCardDecision {
 
 impl Effect for GainMinorPowerCardDecision {
     fn apply_effect(&self, game: &mut GameState) -> Result<(), StepFailure> {
+        return game.do_effect(NotImplementedEffect { what: "MINOR POWER DRAFTING, disabled" });
+
         // 1. Setup the draw/pending state
         game.minor_powers.draw_into_pending(game.rng.get_rng(), self.draw_count);
 

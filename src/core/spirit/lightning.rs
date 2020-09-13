@@ -26,6 +26,11 @@ fn card_lightnings_boon (game: &mut GameState) -> Result<(), StepFailure> {
 }
 
 fn card_raging_storm (game: &mut GameState) -> Result<(), StepFailure> {
+    let usage = *game.get_power_usage()?;
+    let land_index = usage.target_land()?;
+
+    game.do_effect(DoDamageToEachInvaderEffect{ land_index: land_index, damage: 1, kinds: InvaderMap::new(true) })?;
+    
     Ok(())
 }
 

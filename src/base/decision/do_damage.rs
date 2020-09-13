@@ -157,11 +157,11 @@ impl Effect for DoDamageToInvadersDecision {
         let mut destroyed_invaders: Vec<usize> = Vec::new();
         let mut damage_remaining = self.damage;
         {
-            let invaders = &mut game.get_land_mut(self.land_index)?.invaders;
+            let invaders_mut = &mut game.get_land_mut(self.land_index)?.invaders;
             
-            for invader_index in 0..invaders.len() {
+            for invader_index in 0..invaders_mut.len() {
                 let damage_to_do = damage_layout[invader_index] as u8;
-                let invader_to_damage = &mut invaders[invader_index];
+                let invader_to_damage = &mut invaders_mut[invader_index];
     
                 if damage_to_do > invader_to_damage.health_cur {
                     return Err(StepFailure::RulesViolation("Cannot do more damage than current health.".to_string()))
@@ -180,6 +180,7 @@ impl Effect for DoDamageToInvadersDecision {
         }
 
         // 4. Clean up pending destroys
+        destroyed_invaders.sort();
         destroyed_invaders.reverse(); // so that higher indexes are first
         for invader_index in destroyed_invaders {
             game.do_effect(RemoveInvaderEffect{land_index: self.land_index, invader_index, destroyed: true})?;
@@ -269,6 +270,7 @@ impl Effect for DestroyInvadersDecision {
         }
 
         // 4. Clean up pending destroys
+        destroyed_invaders.sort();
         destroyed_invaders.reverse(); // so that higher indexes are first
         for invader_index in destroyed_invaders {
             game.do_effect(RemoveInvaderEffect{land_index: self.land_index, invader_index, destroyed: true})?;
