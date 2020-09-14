@@ -2,9 +2,12 @@
 use std::{
     any::Any,
     iter::*,
+    cmp::{min},
     collections::{HashSet},
     sync::{Arc}
 };
+
+use itertools::*;
 
 use super::*;
 
@@ -40,15 +43,27 @@ impl Effect for CardPlaysDecision {
             return Err(StepFailure::InternalError("duplicate play choices!".to_string()));
         }
 
+        // 1c. Verify energy expenditure:
+        let spirit = game.get_spirit(self.spirit_index)?;
+        let cost = choice.iter().map(|card| spirit.deck.hand[*card].desc.cost).sum::<u8>();
+
         game.log_decision(format_args!("choosing card plays..."));
 
-        // 2. Move the cards to pending
+        // 2. Actually "play" the cards
+        let spirit_mut = game.get_spirit_mut(self.spirit_index)?;
+
+        // 2a. Spend the energy
+        spirit_mut.energy -= cost;
+
+        // 2b. Gain elements
+        // TODO: gain elements
+
+        // 2c. Place the cards into pending
         choice.sort();
         choice.reverse();
 
-        let spirit = game.get_spirit_mut(self.spirit_index)?;
         for schoice in choice {
-            spirit.deck.pending.push(spirit.deck.hand.remove(schoice));
+            spirit_mut.deck.pending.push(spirit_mut.deck.hand.remove(schoice));
         }
 
         Ok(())
@@ -62,9 +77,22 @@ impl Effect for CardPlaysDecision {
 
 impl Decision for CardPlaysDecision {
     fn valid_choices(&self, game: &GameState) -> Vec<DecisionChoice> {
-        let hand_size = game.get_spirit(self.spirit_index).ok().unwrap().deck.hand.len();
-        (0..hand_size)
-            .map(|index| DecisionChoice::Sequence(vec![index]))
+        let spirit = game.get_spirit(self.spirit_index).ok().unwrap();
+
+        let hand_size = spirit.deck.hand.len();
+        let plays = spirit.plays as usize;
+
+        // for each possible play length
+        (0..(min(hand_size, plays)+1))
+            // generate the possible combinations
+            .map(|cards_to_play| (0..hand_size).combinations(cards_to_play))
+            // into one list
+            .fold(Vec::new(), |mut acc, v| { acc.extend(v); acc })
+            .into_iter()
+            // filter for those that can actually be played in combination energy wise
+            .filter(|cards| {cards.iter().map(|card| spirit.deck.hand[*card].desc.cost).sum::<u8>() <= spirit.energy})
+            // and turn them into decision objects
+            .map(|cards| DecisionChoice::Sequence(cards))
             .collect()
     }
 }
